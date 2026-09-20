@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Cocina Sofía</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #fff8f1;
+      color: #2d2d2d;
+    }
+
+    .contenedor {
+      max-width: 520px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    .encabezado {
+      text-align: center;
+      padding: 25px 10px 15px;
+    }
+
+    .encabezado h1 {
+      margin: 0;
+      font-size: 34px;
+      color: #9b3f2f;
+    }
+
+    .encabezado p {
+      margin-top: 8px;
+      color: #777;
+    }
+
+    .tarjeta {
+      background: white;
+      border-radius: 18px;
+      padding: 20px;
+      margin-bottom: 18px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+    }
+
+    .tarjeta h2 {
+      margin-top: 0;
+      color: #9b3f2f;
+    }
+
+    .producto {
+      padding: 11px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .producto:last-child {
+      border-bottom: none;
+    }
+
+    .categoria {
+      font-size: 12px;
+      font-weight: bold;
+      color: #999;
+      margin-bottom: 3px;
+    }
+
+    .nombre {
+      font-size: 17px;
+      font-weight: bold;
+    }
+
+    .boton-whatsapp {
+      display: block;
+      width: 100%;
+      padding: 17px;
+      margin-top: 15px;
+
+      background: #25D366;
+      color: white;
+
+      text-align: center;
+      text-decoration: none;
+
+      font-size: 18px;
+      font-weight: bold;
+
+      border-radius: 14px;
+    }
+
+    .boton-whatsapp:hover {
+      opacity: 0.9;
+    }
+
+    .cargando {
+      text-align: center;
+      padding: 30px;
+      color: #777;
+    }
+
+    .pie {
+      text-align: center;
+      font-size: 13px;
+      color: #999;
+      padding: 15px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="contenedor">
+
+  <div class="encabezado">
+    <h1>🍴 Cocina Sofía</h1>
+    <p>Comida casera, cerca de ti</p>
+  </div>
+
+
+  <div class="tarjeta">
+
+    <h2>🌅 Desayunos</h2>
+
+    <div id="desayunos">
+      <div class="cargando">
+        Cargando desayunos...
+      </div>
+    </div>
+
+  </div>
+
+
+  <div class="tarjeta">
+
+    <h2>🍲 Menú del día</h2>
+
+    <div id="menu">
+      <div class="cargando">
+        Próximamente publicaremos el menú de hoy.
+      </div>
+    </div>
+
+  </div>
+
+
+  <div class="tarjeta">
+
+    <h2>📲 Haz tu pedido</h2>
+
+    <p>
+      Envíanos tu pedido por WhatsApp y te confirmaremos disponibilidad.
+    </p>
+
+    <a
+      class="boton-whatsapp"
+      id="botonWhatsapp"
+      target="_blank"
+    >
+      🟢 PEDIR POR WHATSAPP
+    </a>
+
+  </div>
+
+
+  <div class="pie">
+    Cocina Sofía · Gracias por tu preferencia ❤️
+  </div>
+
+</div>
+
+
+<script>
+
+const SUPABASE_URL =
+"https://yawuozkdndxdreepqlaw.supabase.co";
+
+const SUPABASE_KEY =
+"sb_publishable_SNZVLb4pwoSdNO2iBKn2lA_qjegXePB";
+
+
+const clienteSupabase =
+supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+
+// ======================================
+// CARGAR DESAYUNOS
+// ======================================
+
+async function cargarDesayunos() {
+
+  const { data, error } =
+    await clienteSupabase
+      .from("cs_productos")
+      .select("*")
+      .eq("categoria", "DESAYUNO")
+      .eq("activo", true)
+      .order("orden");
+
+
+  const contenedor =
+    document.getElementById("desayunos");
+
+
+  if (error) {
+
+    console.error(error);
+
+    contenedor.innerHTML =
+      "No fue posible cargar los desayunos.";
+
+    return;
+  }
+
+
+  if (!data || data.length === 0) {
+
+    contenedor.innerHTML =
+      "No hay desayunos disponibles.";
+
+    return;
+  }
+
+
+  contenedor.innerHTML = "";
+
+
+  data.forEach(producto => {
+
+    const elemento =
+      document.createElement("div");
+
+    elemento.className =
+      "producto";
+
+
+    let precio = "";
+
+    if (Number(producto.precio) > 0) {
+
+      precio =
+        ` · $${Number(producto.precio).toFixed(0)}`;
+
+    }
+
+
+    elemento.innerHTML = `
+      <div class="nombre">
+        ${producto.nombre}${precio}
+      </div>
+    `;
+
+
+    contenedor.appendChild(elemento);
+
+  });
+
+}
+
+
+
+// ======================================
+// CARGAR MENÚ DEL DÍA
+// ======================================
+
+async function cargarMenu() {
+
+  const hoy =
+    new Date()
+      .toISOString()
+      .split("T")[0];
+
+
+  const { data, error } =
+    await clienteSupabase
+      .from("cs_menu_dia")
+      .select(`
+        id,
+        tipo,
+        producto_id,
+        cs_productos (
+          nombre,
+          categoria,
+          precio
+        )
+      `)
+      .eq("fecha", hoy)
+      .eq("disponible", true);
+
+
+  const contenedor =
+    document.getElementById("menu");
+
+
+  if (error) {
+
+    console.error(error);
+
+    contenedor.innerHTML =
+      "No fue posible cargar el menú.";
+
+    return;
+  }
+
+
+  if (!data || data.length === 0) {
+
+    contenedor.innerHTML = `
+      <p>
+        Todavía no se ha publicado
+        el menú de hoy.
+      </p>
+    `;
+
+    return;
+  }
+
+
+  contenedor.innerHTML = "";
+
+
+  data.forEach(item => {
+
+    if (!item.cs_productos)
+      return;
+
+
+    const producto =
+      item.cs_productos;
+
+
+    const elemento =
+      document.createElement("div");
+
+
+    elemento.className =
+      "producto";
+
+
+    elemento.innerHTML = `
+
+      <div class="categoria">
+        ${nombreCategoria(producto.categoria)}
+      </div>
+
+      <div class="nombre">
+        ${producto.nombre}
+      </div>
+
+    `;
+
+
+    contenedor.appendChild(elemento);
+
+  });
+
+}
+
+
+
+// ======================================
+// NOMBRES BONITOS DE CATEGORÍAS
+// ======================================
+
+function nombreCategoria(categoria) {
+
+  const nombres = {
+
+    GUISO: "GUISO",
+
+    GUARNICION:
+      "GUARNICIÓN",
+
+    SOPA_CREMA:
+      "SOPA / CREMA",
+
+    POSTRE:
+      "POSTRE",
+
+    AGUA:
+      "AGUA"
+
+  };
+
+
+  return nombres[categoria]
+      || categoria;
+
+}
+
+
+
+// ======================================
+// WHATSAPP
+// ======================================
+
+function configurarWhatsapp() {
+
+  const telefono =
+    "524491041613";
+
+
+  const mensaje =
+
+`Hola 👋
+
+Quiero hacer un pedido en Cocina Sofía.
+
+Mi nombre es:
+
+Mi pedido es:
+
+Área / oficina:
+
+Hora aproximada de entrega:`;
+
+
+  const url =
+    "https://wa.me/"
+    + telefono
+    + "?text="
+    + encodeURIComponent(mensaje);
+
+
+  document
+    .getElementById("botonWhatsapp")
+    .href = url;
+
+}
+
+
+
+// ======================================
+// INICIAR
+// ======================================
+
+cargarDesayunos();
+
+cargarMenu();
+
+configurarWhatsapp();
+
+</script>
+
+</body>
+</html>
