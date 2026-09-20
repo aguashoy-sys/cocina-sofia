@@ -78,14 +78,15 @@ input{
 }
 
 .desayuno{
-  display:flex;
+  display:grid;
+  grid-template-columns:28px 1fr 95px;
+  gap:10px;
   align-items:center;
-  gap:12px;
-  padding:13px 0;
+  padding:14px 0;
   border-bottom:1px solid #eee;
 }
 
-.desayuno input{
+.desayuno input[type="checkbox"]{
   width:22px;
   height:22px;
 }
@@ -94,6 +95,11 @@ input{
   margin:0;
   font-weight:normal;
   font-size:17px;
+}
+
+.precio-desayuno{
+  padding:10px;
+  text-align:center;
 }
 
 .boton{
@@ -145,6 +151,13 @@ input{
   border-top:1px solid #eee;
   margin:22px 0;
 }
+
+.etiqueta-precio{
+  font-size:12px;
+  color:#777;
+  text-align:center;
+  margin-bottom:3px;
+}
 </style>
 </head>
 
@@ -169,7 +182,7 @@ input{
     <h2>🌅 Desayunos de hoy</h2>
 
     <p>
-      Marca únicamente los desayunos que tendrás disponibles.
+      Marca los desayunos disponibles y escribe el precio de cada uno.
     </p>
 
     <div id="listaDesayunos">
@@ -218,6 +231,7 @@ input{
     <hr class="separador">
 
     <div class="campo">
+
       <label>💰 Precio del menú completo</label>
 
       <input
@@ -228,9 +242,6 @@ input{
         min="0"
       >
 
-      <div class="nota">
-        Escribe solamente el número.
-      </div>
     </div>
 
 
@@ -269,7 +280,7 @@ supabase.createClient(
 
 
 // ==============================
-// FECHA LOCAL
+// FECHA
 // ==============================
 
 function fechaLocalISO(){
@@ -316,7 +327,7 @@ function mostrarFecha(){
 
 
 // ==============================
-// CARGAR CATÁLOGO
+// CARGAR PRODUCTOS
 // ==============================
 
 async function cargarProductos(){
@@ -388,7 +399,7 @@ async function cargarProductos(){
 
 
 // ==============================
-// LLENAR SELECT
+// SELECTS
 // ==============================
 
 function cargarSelect(id,productos){
@@ -453,6 +464,23 @@ function cargarDesayunos(productos){
         ${p.nombre}
       </label>
 
+      <div>
+
+        <div class="etiqueta-precio">
+          Precio
+        </div>
+
+        <input
+          type="number"
+          inputmode="decimal"
+          min="0"
+          placeholder="$"
+          class="precio-desayuno"
+          id="precio_${p.id}"
+        >
+
+      </div>
+
     `;
 
 
@@ -465,7 +493,7 @@ function cargarDesayunos(productos){
 
 
 // ==============================
-// PUBLICAR TODO
+// PUBLICAR
 // ==============================
 
 async function publicarTodo(){
@@ -550,14 +578,58 @@ async function publicarTodo(){
   }
 
 
-  const desayunos =
-    Array
-      .from(
-        document.querySelectorAll(
-          ".checkDesayuno:checked"
-        )
+
+  // ==============================
+  // DESAYUNOS SELECCIONADOS
+  // ==============================
+
+  const checks =
+    Array.from(
+      document.querySelectorAll(
+        ".checkDesayuno:checked"
       )
-      .map(x => Number(x.value));
+    );
+
+
+  const desayunos = [];
+  const preciosDesayuno = [];
+
+
+  for(const check of checks){
+
+    const id =
+      Number(check.value);
+
+    const precioDesayuno =
+      Number(
+        document.getElementById(
+          "precio_" + id
+        ).value
+      );
+
+
+    if(
+      !precioDesayuno ||
+      precioDesayuno <= 0
+    ){
+
+      mostrarMensaje(
+        "Escribe el precio de todos los desayunos seleccionados.",
+        false
+      );
+
+      return;
+    }
+
+
+    desayunos.push(id);
+
+    preciosDesayuno.push(
+      precioDesayuno
+    );
+
+  }
+
 
 
   const productosComida = [
@@ -578,12 +650,15 @@ async function publicarTodo(){
     "PUBLICANDO...";
 
 
+  // ==============================
   // PUBLICAR COMIDA
+  // ==============================
 
   const {error:errorComida} =
     await db.rpc(
       "cs_publicar_menu",
       {
+
         p_fecha:
           fechaLocalISO(),
 
@@ -592,6 +667,7 @@ async function publicarTodo(){
 
         p_precio:
           precio
+
       }
     );
 
@@ -610,17 +686,25 @@ async function publicarTodo(){
   }
 
 
-  // PUBLICAR DESAYUNOS
+
+  // ==============================
+  // PUBLICAR DESAYUNOS + PRECIOS
+  // ==============================
 
   const {error:errorDesayuno} =
     await db.rpc(
-      "cs_publicar_desayunos",
+      "cs_publicar_desayunos_con_precio",
       {
+
         p_fecha:
           fechaLocalISO(),
 
         p_productos:
-          desayunos
+          desayunos,
+
+        p_precios:
+          preciosDesayuno
+
       }
     );
 
@@ -637,6 +721,7 @@ async function publicarTodo(){
     restaurarBoton();
     return;
   }
+
 
 
   mostrarMensaje(
