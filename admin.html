@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Cocina Sofía | Administrar menú</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:Arial,Helvetica,sans-serif;
+  background:#fff8f1;
+  color:#333;
+}
+
+.contenedor{
+  max-width:600px;
+  margin:auto;
+  padding:18px;
+}
+
+.encabezado{
+  text-align:center;
+  margin-bottom:22px;
+}
+
+.encabezado h1{
+  margin-bottom:5px;
+  color:#9b3f2f;
+}
+
+.fecha{
+  background:#9b3f2f;
+  color:white;
+  padding:14px;
+  border-radius:14px;
+  font-weight:bold;
+  text-align:center;
+  font-size:18px;
+}
+
+.tarjeta{
+  background:white;
+  margin-top:18px;
+  padding:20px;
+  border-radius:18px;
+  box-shadow:0 4px 14px rgba(0,0,0,.08);
+}
+
+.tarjeta h2{
+  margin-top:0;
+  color:#9b3f2f;
+}
+
+.campo{
+  margin-bottom:18px;
+}
+
+label{
+  display:block;
+  font-weight:bold;
+  margin-bottom:7px;
+}
+
+select,
+input{
+  width:100%;
+  padding:14px;
+  border:1px solid #ccc;
+  border-radius:10px;
+  font-size:16px;
+  background:white;
+}
+
+.desayuno{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:13px 0;
+  border-bottom:1px solid #eee;
+}
+
+.desayuno input{
+  width:22px;
+  height:22px;
+}
+
+.desayuno label{
+  margin:0;
+  font-weight:normal;
+  font-size:17px;
+}
+
+.boton{
+  width:100%;
+  border:none;
+  padding:18px;
+  margin-top:20px;
+  border-radius:14px;
+  background:#9b3f2f;
+  color:white;
+  font-size:18px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.boton:disabled{
+  opacity:.5;
+}
+
+.mensaje{
+  display:none;
+  margin-top:18px;
+  padding:16px;
+  border-radius:12px;
+  text-align:center;
+  font-weight:bold;
+}
+
+.exito{
+  display:block;
+  background:#e6f7eb;
+  color:#176b32;
+}
+
+.error{
+  display:block;
+  background:#fdeaea;
+  color:#9c2222;
+}
+
+.nota{
+  font-size:13px;
+  color:#777;
+  margin-top:8px;
+}
+
+.separador{
+  border:none;
+  border-top:1px solid #eee;
+  margin:22px 0;
+}
+</style>
+</head>
+
+<body>
+
+<div class="contenedor">
+
+  <div class="encabezado">
+    <h1>🍴 Cocina Sofía</h1>
+    <div>Panel para publicar el menú</div>
+  </div>
+
+  <div class="fecha" id="fechaBonita">
+    Cargando fecha...
+  </div>
+
+
+  <!-- DESAYUNOS -->
+
+  <div class="tarjeta">
+
+    <h2>🌅 Desayunos de hoy</h2>
+
+    <p>
+      Marca únicamente los desayunos que tendrás disponibles.
+    </p>
+
+    <div id="listaDesayunos">
+      Cargando...
+    </div>
+
+  </div>
+
+
+  <!-- COMIDA -->
+
+  <div class="tarjeta">
+
+    <h2>🍲 Comida de hoy</h2>
+
+    <div class="campo">
+      <label>🥣 Sopa o crema</label>
+      <select id="sopa"></select>
+    </div>
+
+    <div class="campo">
+      <label>🍗 Guiso</label>
+      <select id="guiso"></select>
+    </div>
+
+    <div class="campo">
+      <label>🍚 Guarnición 1</label>
+      <select id="guarnicion1"></select>
+    </div>
+
+    <div class="campo">
+      <label>🍚 Guarnición 2</label>
+      <select id="guarnicion2"></select>
+    </div>
+
+    <div class="campo">
+      <label>🍮 Postre</label>
+      <select id="postre"></select>
+    </div>
+
+    <div class="campo">
+      <label>🥤 Agua</label>
+      <select id="agua"></select>
+    </div>
+
+    <hr class="separador">
+
+    <div class="campo">
+      <label>💰 Precio del menú completo</label>
+
+      <input
+        id="precio"
+        type="number"
+        inputmode="decimal"
+        placeholder="Ejemplo: 95"
+        min="0"
+      >
+
+      <div class="nota">
+        Escribe solamente el número.
+      </div>
+    </div>
+
+
+    <button
+      class="boton"
+      id="publicar"
+      onclick="publicarTodo()"
+    >
+      PUBLICAR MENÚ DE HOY
+    </button>
+
+
+    <div
+      id="mensaje"
+      class="mensaje">
+    </div>
+
+  </div>
+
+</div>
+
+
+<script>
+
+const SUPABASE_URL =
+"https://yawuozkdndxdreepqlaw.supabase.co";
+
+const SUPABASE_KEY =
+"sb_publishable_SNZVLb4pwoSdNO2iBKn2lA_qjegXePB";
+
+const db =
+supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+
+// ==============================
+// FECHA LOCAL
+// ==============================
+
+function fechaLocalISO(){
+
+  const ahora = new Date();
+
+  const year =
+    ahora.getFullYear();
+
+  const month =
+    String(ahora.getMonth()+1)
+    .padStart(2,"0");
+
+  const day =
+    String(ahora.getDate())
+    .padStart(2,"0");
+
+  return `${year}-${month}-${day}`;
+}
+
+
+function mostrarFecha(){
+
+  const fecha = new Date();
+
+  const texto =
+    fecha.toLocaleDateString(
+      "es-MX",
+      {
+        weekday:"long",
+        day:"numeric",
+        month:"long"
+      }
+    );
+
+  document
+    .getElementById("fechaBonita")
+    .textContent =
+      "📅 " +
+      texto.charAt(0).toUpperCase() +
+      texto.slice(1);
+}
+
+
+
+// ==============================
+// CARGAR CATÁLOGO
+// ==============================
+
+async function cargarProductos(){
+
+  const {data,error} =
+    await db
+      .from("cs_productos")
+      .select("id,categoria,nombre,precio")
+      .eq("activo",true)
+      .order("orden");
+
+
+  if(error){
+
+    mostrarMensaje(
+      "No fue posible cargar los productos.",
+      false
+    );
+
+    console.error(error);
+    return;
+  }
+
+
+  cargarSelect(
+    "sopa",
+    data.filter(x =>
+      x.categoria === "SOPA_CREMA")
+  );
+
+  cargarSelect(
+    "guiso",
+    data.filter(x =>
+      x.categoria === "GUISO")
+  );
+
+  cargarSelect(
+    "guarnicion1",
+    data.filter(x =>
+      x.categoria === "GUARNICION")
+  );
+
+  cargarSelect(
+    "guarnicion2",
+    data.filter(x =>
+      x.categoria === "GUARNICION")
+  );
+
+  cargarSelect(
+    "postre",
+    data.filter(x =>
+      x.categoria === "POSTRE")
+  );
+
+  cargarSelect(
+    "agua",
+    data.filter(x =>
+      x.categoria === "AGUA")
+  );
+
+
+  cargarDesayunos(
+    data.filter(x =>
+      x.categoria === "DESAYUNO")
+  );
+
+}
+
+
+
+// ==============================
+// LLENAR SELECT
+// ==============================
+
+function cargarSelect(id,productos){
+
+  const select =
+    document.getElementById(id);
+
+  select.innerHTML =
+    '<option value="">Seleccionar...</option>';
+
+
+  productos.forEach(p => {
+
+    const opcion =
+      document.createElement("option");
+
+    opcion.value = p.id;
+    opcion.textContent = p.nombre;
+
+    select.appendChild(opcion);
+
+  });
+
+}
+
+
+
+// ==============================
+// DESAYUNOS
+// ==============================
+
+function cargarDesayunos(productos){
+
+  const contenedor =
+    document.getElementById(
+      "listaDesayunos"
+    );
+
+  contenedor.innerHTML = "";
+
+
+  productos.forEach(p => {
+
+    const fila =
+      document.createElement("div");
+
+    fila.className =
+      "desayuno";
+
+
+    fila.innerHTML = `
+
+      <input
+        type="checkbox"
+        class="checkDesayuno"
+        value="${p.id}"
+        id="desayuno_${p.id}"
+      >
+
+      <label
+        for="desayuno_${p.id}">
+        ${p.nombre}
+      </label>
+
+    `;
+
+
+    contenedor.appendChild(fila);
+
+  });
+
+}
+
+
+
+// ==============================
+// PUBLICAR TODO
+// ==============================
+
+async function publicarTodo(){
+
+  const boton =
+    document.getElementById(
+      "publicar"
+    );
+
+
+  const sopa =
+    document.getElementById("sopa").value;
+
+  const guiso =
+    document.getElementById("guiso").value;
+
+  const g1 =
+    document.getElementById(
+      "guarnicion1"
+    ).value;
+
+  const g2 =
+    document.getElementById(
+      "guarnicion2"
+    ).value;
+
+  const postre =
+    document.getElementById(
+      "postre"
+    ).value;
+
+  const agua =
+    document.getElementById(
+      "agua"
+    ).value;
+
+  const precio =
+    Number(
+      document.getElementById(
+        "precio"
+      ).value
+    );
+
+
+  if(
+    !sopa ||
+    !guiso ||
+    !g1 ||
+    !g2 ||
+    !postre ||
+    !agua
+  ){
+
+    mostrarMensaje(
+      "Selecciona todos los elementos de la comida.",
+      false
+    );
+
+    return;
+  }
+
+
+  if(g1 === g2){
+
+    mostrarMensaje(
+      "Selecciona dos guarniciones diferentes.",
+      false
+    );
+
+    return;
+  }
+
+
+  if(!precio || precio <= 0){
+
+    mostrarMensaje(
+      "Escribe el precio del menú.",
+      false
+    );
+
+    return;
+  }
+
+
+  const desayunos =
+    Array
+      .from(
+        document.querySelectorAll(
+          ".checkDesayuno:checked"
+        )
+      )
+      .map(x => Number(x.value));
+
+
+  const productosComida = [
+
+    Number(sopa),
+    Number(guiso),
+    Number(g1),
+    Number(g2),
+    Number(postre),
+    Number(agua)
+
+  ];
+
+
+  boton.disabled = true;
+
+  boton.textContent =
+    "PUBLICANDO...";
+
+
+  // PUBLICAR COMIDA
+
+  const {error:errorComida} =
+    await db.rpc(
+      "cs_publicar_menu",
+      {
+        p_fecha:
+          fechaLocalISO(),
+
+        p_productos:
+          productosComida,
+
+        p_precio:
+          precio
+      }
+    );
+
+
+  if(errorComida){
+
+    console.error(errorComida);
+
+    mostrarMensaje(
+      "No se pudo publicar la comida.",
+      false
+    );
+
+    restaurarBoton();
+    return;
+  }
+
+
+  // PUBLICAR DESAYUNOS
+
+  const {error:errorDesayuno} =
+    await db.rpc(
+      "cs_publicar_desayunos",
+      {
+        p_fecha:
+          fechaLocalISO(),
+
+        p_productos:
+          desayunos
+      }
+    );
+
+
+  if(errorDesayuno){
+
+    console.error(errorDesayuno);
+
+    mostrarMensaje(
+      "La comida se publicó, pero hubo un problema con los desayunos.",
+      false
+    );
+
+    restaurarBoton();
+    return;
+  }
+
+
+  mostrarMensaje(
+    "✅ Menú de hoy publicado correctamente.",
+    true
+  );
+
+
+  restaurarBoton();
+
+}
+
+
+
+// ==============================
+// MENSAJES
+// ==============================
+
+function mostrarMensaje(
+  texto,
+  correcto
+){
+
+  const mensaje =
+    document.getElementById(
+      "mensaje"
+    );
+
+  mensaje.textContent = texto;
+
+  mensaje.className =
+    correcto
+      ? "mensaje exito"
+      : "mensaje error";
+
+}
+
+
+function restaurarBoton(){
+
+  const boton =
+    document.getElementById(
+      "publicar"
+    );
+
+  boton.disabled = false;
+
+  boton.textContent =
+    "PUBLICAR MENÚ DE HOY";
+
+}
+
+
+
+// ==============================
+// INICIAR
+// ==============================
+
+mostrarFecha();
+cargarProductos();
+
+</script>
+
+</body>
+</html>
