@@ -4,171 +4,426 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Cocina Sofía</title>
+<title>Cocina Sofía | Comida casera</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
+
+:root{
+  --terracota:#a84f3d;
+  --terracota-oscuro:#81392d;
+  --crema:#fffaf4;
+  --crema-2:#f7eee4;
+  --verde:#5f714b;
+  --verde-claro:#edf3e8;
+  --texto:#382f2b;
+  --gris:#776d68;
+  --rojo:#a73535;
+  --rojo-claro:#fff0ed;
+  --whatsapp:#25D366;
+  --blanco:#ffffff;
+}
+
 *{
   box-sizing:border-box;
+}
+
+html{
+  scroll-behavior:smooth;
 }
 
 body{
   margin:0;
   font-family:Arial,Helvetica,sans-serif;
-  background:#fff8f1;
-  color:#333;
+  background:var(--crema);
+  color:var(--texto);
 }
 
-.contenedor{
-  max-width:560px;
+.pagina{
+  max-width:600px;
   margin:auto;
-  padding:18px;
+  min-height:100vh;
 }
 
-.encabezado{
+
+/* ========================================
+   HERO
+======================================== */
+
+.hero{
+  position:relative;
+  overflow:hidden;
+  background:
+    linear-gradient(
+      145deg,
+      #873d30,
+      #b85d47
+    );
+  color:white;
+  padding:38px 22px 34px;
   text-align:center;
-  padding:18px 5px 10px;
+  border-radius:0 0 32px 32px;
 }
 
-.encabezado h1{
+.hero::before{
+  content:"";
+  position:absolute;
+  width:220px;
+  height:220px;
+  border-radius:50%;
+  background:rgba(255,255,255,.05);
+  top:-110px;
+  right:-70px;
+}
+
+.hero::after{
+  content:"";
+  position:absolute;
+  width:150px;
+  height:150px;
+  border-radius:50%;
+  background:rgba(255,255,255,.04);
+  bottom:-80px;
+  left:-50px;
+}
+
+.marca{
+  position:relative;
+  z-index:2;
+}
+
+.icono-marca{
+  width:66px;
+  height:66px;
+  margin:auto;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:50%;
+  background:rgba(255,255,255,.15);
+  border:1px solid rgba(255,255,255,.25);
+  font-size:32px;
+  margin-bottom:13px;
+}
+
+.hero h1{
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:39px;
   margin:0;
-  font-size:34px;
-  color:#9b3f2f;
+  letter-spacing:.3px;
 }
 
-.encabezado p{
-  margin:7px 0 0;
-  color:#777;
+.eslogan{
+  margin:8px 0 20px;
+  font-size:16px;
+  opacity:.94;
 }
 
 .fecha{
-  background:#9b3f2f;
-  color:white;
-  padding:14px;
-  border-radius:14px;
+  display:inline-block;
+  background:rgba(255,255,255,.16);
+  border:1px solid rgba(255,255,255,.22);
+  padding:10px 16px;
+  border-radius:30px;
+  font-size:14px;
+  font-weight:bold;
+}
+
+
+/* ========================================
+   CONTENIDO
+======================================== */
+
+.contenido{
+  padding:22px 16px 100px;
+}
+
+.bienvenida{
   text-align:center;
-  font-size:18px;
-  font-weight:bold;
-  margin:15px 0 20px;
+  padding:6px 12px 20px;
 }
 
-.tarjeta{
-  background:white;
-  border-radius:18px;
-  padding:20px;
-  margin-bottom:18px;
-  box-shadow:0 4px 14px rgba(0,0,0,.08);
+.bienvenida strong{
+  color:var(--terracota);
 }
 
-.tarjeta h2{
-  margin-top:0;
-  color:#9b3f2f;
+.bienvenida p{
+  margin:6px 0 0;
+  color:var(--gris);
+  line-height:1.5;
+  font-size:14px;
 }
 
-.producto{
-  padding:12px 0;
-  border-bottom:1px solid #eee;
+
+/* ========================================
+   TITULOS
+======================================== */
+
+.encabezado-seccion{
+  margin-bottom:16px;
 }
 
-.producto:last-child{
-  border-bottom:none;
-}
-
-.nombre-producto{
-  font-size:17px;
-  font-weight:bold;
-}
-
-.categoria{
+.mini-titulo{
+  color:var(--verde);
   font-size:12px;
   font-weight:bold;
-  color:#999;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
   margin-bottom:4px;
 }
 
-.precio-desayuno{
-  font-weight:bold;
-  color:#9b3f2f;
-  margin-top:4px;
+.encabezado-seccion h2{
+  font-family:Georgia,"Times New Roman",serif;
+  margin:0;
+  color:var(--terracota-oscuro);
+  font-size:26px;
 }
 
-.disponible{
-  color:#238342;
-  font-size:13px;
-  font-weight:bold;
-  margin-top:5px;
+.encabezado-seccion p{
+  color:var(--gris);
+  margin:6px 0 0;
+  line-height:1.4;
+  font-size:14px;
 }
 
-.agotado{
-  background:#fdeaea;
-  color:#a42121;
-  padding:9px 11px;
-  border-radius:9px;
-  font-size:13px;
-  font-weight:bold;
-  margin-top:8px;
+
+/* ========================================
+   TARJETAS
+======================================== */
+
+.seccion{
+  background:white;
+  border-radius:22px;
+  padding:20px;
+  margin-bottom:18px;
+  box-shadow:
+    0 7px 24px
+    rgba(87,54,38,.08);
 }
 
-.producto-agotado{
-  opacity:.75;
+
+/* ========================================
+   DESAYUNOS
+======================================== */
+
+.lista-desayunos{
+  display:grid;
+  gap:11px;
 }
 
-.precio-menu{
-  text-align:center;
-  font-size:25px;
-  font-weight:bold;
-  color:#9b3f2f;
-  margin:18px 0 5px;
-}
-
-.aviso-agotado{
-  background:#fdeaea;
-  color:#9c2222;
+.desayuno-card{
+  position:relative;
+  border:1px solid #eee3d8;
+  background:#fffdf9;
+  border-radius:16px;
   padding:15px;
-  border-radius:12px;
-  text-align:center;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:15px;
+}
+
+.desayuno-info{
+  flex:1;
+}
+
+.desayuno-nombre{
   font-weight:bold;
-  margin-top:15px;
-  line-height:1.5;
+  font-size:17px;
+  margin-bottom:5px;
+}
+
+.desayuno-disponible{
+  display:inline-block;
+  font-size:12px;
+  color:#416331;
+  background:var(--verde-claro);
+  padding:5px 9px;
+  border-radius:20px;
+  font-weight:bold;
+}
+
+.desayuno-precio{
+  font-family:Georgia,"Times New Roman",serif;
+  font-weight:bold;
+  color:var(--terracota);
+  font-size:23px;
+  white-space:nowrap;
+}
+
+.desayuno-card.agotado-card{
+  background:#faf7f4;
+  opacity:.82;
+}
+
+.agotado-texto{
+  color:var(--rojo);
+  font-size:12px;
+  font-weight:bold;
+  line-height:1.35;
 }
 
 .aviso{
-  background:#fff3cd;
-  color:#6b5500;
+  background:#fff7df;
+  color:#725d22;
+  padding:15px;
+  border-radius:13px;
+  font-size:14px;
+  line-height:1.5;
+}
+
+
+/* ========================================
+   MENU DEL DIA
+======================================== */
+
+.menu-destacado{
+  background:
+    linear-gradient(
+      145deg,
+      #fff9f1,
+      #f8eee3
+    );
+  border:1px solid #eee0d2;
+  border-radius:18px;
+  padding:6px 16px;
+}
+
+.platillo{
+  display:flex;
+  gap:13px;
+  align-items:center;
+  padding:13px 0;
+  border-bottom:1px dashed #ddcec0;
+}
+
+.platillo:last-child{
+  border-bottom:none;
+}
+
+.platillo-icono{
+  width:38px;
+  height:38px;
+  flex:0 0 38px;
+  border-radius:50%;
+  background:white;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:19px;
+}
+
+.platillo-categoria{
+  color:var(--verde);
+  font-size:10px;
+  font-weight:bold;
+  letter-spacing:.8px;
+  text-transform:uppercase;
+}
+
+.platillo-nombre{
+  font-weight:bold;
+  margin-top:2px;
+  font-size:16px;
+}
+
+.precio-menu-box{
+  margin-top:16px;
+  text-align:center;
+  background:var(--terracota);
+  color:white;
+  border-radius:16px;
+  padding:17px 10px;
+}
+
+.precio-menu-box small{
+  display:block;
+  font-size:11px;
+  letter-spacing:1.5px;
+  margin-bottom:3px;
+  opacity:.9;
+}
+
+.precio-menu-box strong{
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:34px;
+}
+
+.mensaje-casero{
+  text-align:center;
+  color:var(--gris);
+  font-size:13px;
+  font-style:italic;
+  margin:12px 0 0;
+}
+
+.aviso-agotado{
+  background:var(--rojo-claro);
+  color:var(--rojo);
+  border:1px solid #f1cfc9;
   padding:14px;
-  border-radius:12px;
-  line-height:1.4;
+  text-align:center;
+  border-radius:13px;
+  font-weight:bold;
+  line-height:1.45;
+  margin-top:14px;
+}
+
+
+/* ========================================
+   PEDIDO
+======================================== */
+
+.pedido{
+  scroll-margin-top:15px;
 }
 
 .tipo-pedido{
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:10px;
-  margin-bottom:20px;
+  margin:17px 0 22px;
 }
 
 .tipo-pedido button{
-  padding:15px 8px;
-  border:2px solid #9b3f2f;
-  background:white;
-  color:#9b3f2f;
-  border-radius:12px;
-  font-size:16px;
-  font-weight:bold;
+  border:1.5px solid #dfc8bb;
+  background:#fffdf9;
+  color:var(--texto);
+  padding:16px 8px;
+  border-radius:15px;
   cursor:pointer;
+  font-weight:bold;
+  font-size:15px;
+  transition:.15s;
+}
+
+.tipo-pedido button span{
+  display:block;
+  font-size:24px;
+  margin-bottom:5px;
 }
 
 .tipo-pedido button.activo{
-  background:#9b3f2f;
+  background:var(--terracota);
   color:white;
+  border-color:var(--terracota);
+  box-shadow:
+    0 5px 14px
+    rgba(168,79,61,.22);
 }
 
 .tipo-pedido button:disabled{
-  border-color:#bbb;
-  color:#999;
-  background:#eee;
+  background:#f1efed;
+  border-color:#e4e0dc;
+  color:#aaa;
   cursor:not-allowed;
+  box-shadow:none;
+}
+
+.formulario{
+  border-top:1px solid #eee5de;
+  padding-top:18px;
 }
 
 .campo{
@@ -177,302 +432,543 @@ body{
 
 .campo label{
   display:block;
+  font-size:13px;
   font-weight:bold;
-  margin-bottom:7px;
+  color:#5c504a;
+  margin:0 0 7px 3px;
 }
 
 .campo input,
 .campo select{
   width:100%;
+  border:1px solid #ddd3cb;
+  background:#fffdfb;
   padding:14px;
-  border:1px solid #ccc;
-  border-radius:10px;
-  background:white;
+  border-radius:12px;
   font-size:16px;
+  color:var(--texto);
+  outline:none;
+}
+
+.campo input:focus,
+.campo select:focus{
+  border-color:var(--terracota);
+  box-shadow:
+    0 0 0 3px
+    rgba(168,79,61,.08);
+}
+
+.fila-form{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
 }
 
 .check-menu{
-  display:flex;
-  gap:10px;
-  align-items:flex-start;
-  background:#fff8f1;
-  border-radius:12px;
+  background:var(--verde-claro);
   padding:14px;
+  border-radius:13px;
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  margin-top:6px;
 }
 
 .check-menu input{
-  width:22px;
-  height:22px;
-  margin-top:2px;
+  width:21px;
+  height:21px;
+  flex:0 0 21px;
+  margin-top:1px;
 }
 
 .check-menu label{
+  font-size:13px;
   line-height:1.4;
+}
+
+.check-menu small{
+  color:#68745f;
 }
 
 .boton-whatsapp{
   width:100%;
   border:none;
-  background:#25D366;
+  border-radius:15px;
+  background:var(--whatsapp);
   color:white;
-  padding:18px;
-  border-radius:14px;
-  font-size:18px;
+  padding:17px 15px;
+  margin-top:18px;
+  font-size:17px;
   font-weight:bold;
   cursor:pointer;
-  margin-top:18px;
+  box-shadow:
+    0 7px 18px
+    rgba(37,211,102,.23);
+}
+
+.boton-whatsapp small{
+  display:block;
+  font-size:11px;
+  font-weight:normal;
+  margin-top:3px;
+  opacity:.95;
 }
 
 .error{
-  background:#fdeaea;
-  color:#9c2222;
-  padding:14px;
-  border-radius:12px;
-  margin-top:15px;
   display:none;
+  margin-top:13px;
+  padding:13px;
+  background:var(--rojo-claro);
+  color:var(--rojo);
+  border-radius:11px;
+  font-size:13px;
+  font-weight:bold;
 }
 
-.oculto{
-  display:none;
-}
+
+/* ========================================
+   PIE
+======================================== */
 
 .pie{
   text-align:center;
-  color:#999;
-  font-size:13px;
-  padding:10px 10px 25px;
+  padding:10px 20px 28px;
+  color:#958780;
+  font-size:12px;
+  line-height:1.6;
 }
+
+.pie strong{
+  color:var(--terracota);
+}
+
+
+/* ========================================
+   BOTON FLOTANTE
+======================================== */
+
+.flotante{
+  position:fixed;
+  z-index:20;
+  bottom:14px;
+  left:50%;
+  transform:translateX(-50%);
+  width:calc(100% - 30px);
+  max-width:570px;
+  background:#382f2b;
+  color:white;
+  border:none;
+  border-radius:16px;
+  padding:14px 15px;
+  font-weight:bold;
+  font-size:15px;
+  box-shadow:
+    0 8px 25px
+    rgba(0,0,0,.2);
+  cursor:pointer;
+}
+
+.oculto{
+  display:none !important;
+}
+
+@media(min-width:601px){
+
+  body{
+    padding:25px 0;
+  }
+
+  .pagina{
+    border-radius:30px;
+    overflow:hidden;
+    box-shadow:
+      0 10px 40px
+      rgba(74,48,35,.12);
+  }
+
+  .hero{
+    border-radius:0 0 32px 32px;
+  }
+
+}
+
 </style>
 </head>
 
 <body>
 
-<div class="contenedor">
+<div class="pagina">
 
-  <div class="encabezado">
-    <h1>🍴 Cocina Sofía</h1>
-    <p>Comida casera, cerca de ti</p>
-  </div>
+  <!-- HERO -->
 
-  <div class="fecha" id="fechaBonita">
-    Cargando fecha...
-  </div>
+  <header class="hero">
 
+    <div class="marca">
 
-  <!-- DESAYUNOS -->
+      <div class="icono-marca">
+        🍲
+      </div>
 
-  <div class="tarjeta">
+      <h1>Cocina Sofía</h1>
 
-    <h2>🌅 Desayunos</h2>
+      <div class="eslogan">
+        El sabor de casa, hasta tu oficina
+      </div>
 
-    <div id="desayunos">
-      Cargando desayunos...
+      <div
+        class="fecha"
+        id="fechaBonita">
+      </div>
+
     </div>
 
-  </div>
+  </header>
 
 
-  <!-- COMIDA -->
+  <main class="contenido">
 
-  <div class="tarjeta">
+    <div class="bienvenida">
 
-    <h2>🍲 Menú de hoy</h2>
+      <strong>
+        ¡Qué gusto cocinar para ti! ❤️
+      </strong>
 
-    <div id="menuComida">
-      Cargando menú...
-    </div>
-
-    <div
-      class="precio-menu"
-      id="precioComida">
-    </div>
-
-    <div id="avisoComidaAgotada"></div>
-
-  </div>
-
-
-  <!-- PEDIDO -->
-
-  <div class="tarjeta">
-
-    <h2>📲 Haz tu pedido</h2>
-
-
-    <div class="tipo-pedido">
-
-      <button
-        id="btnDesayuno"
-        type="button"
-        onclick="seleccionarTipo('DESAYUNO')">
-
-        🌅 Desayuno
-
-      </button>
-
-
-      <button
-        id="btnComida"
-        type="button"
-        onclick="seleccionarTipo('COMIDA')">
-
-        🍲 Comida
-
-      </button>
+      <p>
+        Consulta lo que preparamos hoy y
+        envíanos tu pedido directamente por WhatsApp.
+      </p>
 
     </div>
 
 
-    <div
-      id="seleccionDesayuno"
-      class="campo oculto">
+    <!-- ============================
+         DESAYUNOS
+    ============================= -->
 
-      <label>
-        ¿Qué desayuno quieres?
-      </label>
+    <section class="seccion">
 
-      <select id="desayunoPedido">
+      <div class="encabezado-seccion">
 
-        <option value="">
-          Selecciona...
-        </option>
+        <div class="mini-titulo">
+          🌤️ Buenos días
+        </div>
 
-      </select>
+        <h2>
+          Desayunos de hoy
+        </h2>
+
+        <p>
+          Empieza el día con algo rico y hecho en casa.
+        </p>
+
+      </div>
+
+      <div
+        class="lista-desayunos"
+        id="desayunos">
+
+        Cargando...
+
+      </div>
+
+    </section>
+
+
+
+    <!-- ============================
+         MENU
+    ============================= -->
+
+    <section class="seccion">
+
+      <div class="encabezado-seccion">
+
+        <div class="mini-titulo">
+          🍴 Recién preparado
+        </div>
+
+        <h2>
+          Menú de hoy
+        </h2>
+
+        <p>
+          Una comida completa para disfrutar sin salir de la oficina.
+        </p>
+
+      </div>
+
+
+      <div
+        class="menu-destacado"
+        id="menuComida">
+
+        Cargando...
+
+      </div>
+
+
+      <div
+        id="precioComida">
+      </div>
+
+
+      <div
+        id="avisoComidaAgotada">
+      </div>
+
+
+      <p
+        class="mensaje-casero"
+        id="mensajeCasero">
+
+        Comida casera preparada con cariño ❤️
+
+      </p>
+
+    </section>
+
+
+
+    <!-- ============================
+         PEDIDO
+    ============================= -->
+
+    <section
+      class="seccion pedido"
+      id="hacerPedido">
+
+      <div class="encabezado-seccion">
+
+        <div class="mini-titulo">
+          🛵 Hasta tu oficina
+        </div>
+
+        <h2>
+          ¿Qué se te antoja?
+        </h2>
+
+        <p>
+          Elige una opción y prepara tu pedido.
+        </p>
+
+      </div>
+
+
+      <div class="tipo-pedido">
+
+        <button
+          id="btnDesayuno"
+          type="button"
+          onclick="seleccionarTipo('DESAYUNO')">
+
+          <span>🌅</span>
+
+          Desayuno
+
+        </button>
+
+
+        <button
+          id="btnComida"
+          type="button"
+          onclick="seleccionarTipo('COMIDA')">
+
+          <span>🍲</span>
+
+          Comida
+
+        </button>
+
+      </div>
+
+
+      <div class="formulario">
+
+
+        <div
+          class="campo oculto"
+          id="seleccionDesayuno">
+
+          <label>
+            🍳 ¿Qué desayuno quieres?
+          </label>
+
+          <select id="desayunoPedido">
+
+            <option value="">
+              Selecciona...
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <div class="campo">
+
+          <label>
+            👤 Tu nombre
+          </label>
+
+          <input
+            id="nombre"
+            type="text"
+            placeholder="Ejemplo: Rodrigo">
+
+        </div>
+
+
+        <div class="fila-form">
+
+          <div class="campo">
+
+            <label>
+              🏢 Área
+            </label>
+
+            <input
+              id="area"
+              type="text"
+              placeholder="Ej. Compras">
+
+          </div>
+
+
+          <div class="campo">
+
+            <label>
+              🛗 Piso
+            </label>
+
+            <input
+              id="piso"
+              type="text"
+              placeholder="Ej. 3">
+
+          </div>
+
+        </div>
+
+
+        <div class="fila-form">
+
+          <div class="campo">
+
+            <label>
+              🍽️ Cantidad
+            </label>
+
+            <input
+              id="cantidad"
+              type="number"
+              inputmode="numeric"
+              value="1"
+              min="1"
+              max="20">
+
+          </div>
+
+
+          <div class="campo">
+
+            <label>
+              🕐 Entrega
+            </label>
+
+            <select id="horario">
+
+              <option value="">
+                Elige tipo
+              </option>
+
+            </select>
+
+          </div>
+
+        </div>
+
+
+        <div class="check-menu">
+
+          <input
+            type="checkbox"
+            id="recibirMenu">
+
+
+          <label for="recibirMenu">
+
+            <strong>
+              🔔 Quiero recibir el menú diario
+            </strong>
+
+            <br>
+
+            <small>
+              Agrégame a la lista de difusión
+              de Cocina Sofía por WhatsApp.
+            </small>
+
+          </label>
+
+        </div>
+
+
+        <button
+          class="boton-whatsapp"
+          type="button"
+          onclick="enviarPedido()">
+
+          💬 PEDIR POR WHATSAPP
+
+          <small>
+            Revisaremos tu pedido antes de enviarlo
+          </small>
+
+        </button>
+
+
+        <div
+          class="error"
+          id="errorPedido">
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <div class="pie">
+
+      <strong>
+        Cocina Sofía
+      </strong>
+
+      <br>
+
+      Hecho en casa · Entregado con cariño ❤️
 
     </div>
 
-
-    <div class="campo">
-
-      <label>
-        👤 Nombre
-      </label>
-
-      <input
-        id="nombre"
-        type="text"
-        placeholder="Tu nombre">
-
-    </div>
-
-
-    <div class="campo">
-
-      <label>
-        🏢 Área
-      </label>
-
-      <input
-        id="area"
-        type="text"
-        placeholder="Ejemplo: Recursos Humanos">
-
-    </div>
-
-
-    <div class="campo">
-
-      <label>
-        🛗 Piso
-      </label>
-
-      <input
-        id="piso"
-        type="text"
-        placeholder="Ejemplo: Piso 3">
-
-    </div>
-
-
-    <div class="campo">
-
-      <label>
-        🍽️ Cantidad
-      </label>
-
-      <input
-        id="cantidad"
-        type="number"
-        inputmode="numeric"
-        value="1"
-        min="1"
-        max="20">
-
-    </div>
-
-
-    <div class="campo">
-
-      <label>
-        🕐 Horario de entrega
-      </label>
-
-      <select id="horario">
-
-        <option value="">
-          Primero selecciona desayuno o comida
-        </option>
-
-      </select>
-
-    </div>
-
-
-    <div class="check-menu">
-
-      <input
-        type="checkbox"
-        id="recibirMenu">
-
-
-      <label for="recibirMenu">
-
-        <strong>
-          🔔 Quiero recibir el menú diario por WhatsApp
-        </strong>
-
-        <br>
-
-        <small>
-          Agrégame a la lista de difusión de Cocina Sofía.
-        </small>
-
-      </label>
-
-    </div>
-
-
-    <button
-      class="boton-whatsapp"
-      type="button"
-      onclick="enviarPedido()">
-
-      🟢 PEDIR POR WHATSAPP
-
-    </button>
-
-
-    <div
-      class="error"
-      id="errorPedido">
-    </div>
-
-  </div>
-
-
-  <div class="pie">
-
-    Cocina Sofía · Gracias por tu preferencia ❤️
-
-  </div>
+  </main>
 
 </div>
+
+
+<button
+  class="flotante"
+  id="botonFlotante"
+  onclick="irAPedido()">
+
+  🛵 Hacer mi pedido
+
+</button>
+
 
 
 <script>
 
 // ========================================
-// CONFIGURACIÓN
+// CONFIGURACION
 // ========================================
 
 const SUPABASE_URL =
@@ -567,7 +1063,7 @@ document
 
 
 // ========================================
-// CARGAR MENÚ COMPLETO
+// CARGAR MENU
 // ========================================
 
 async function cargarMenu(){
@@ -594,7 +1090,7 @@ async function cargarMenu(){
         "desayunos"
       )
       .innerHTML =
-        '<div class="aviso">No fue posible cargar los desayunos.</div>';
+        '<div class="aviso">Por el momento no pudimos cargar los desayunos.</div>';
 
 
     document
@@ -602,7 +1098,7 @@ async function cargarMenu(){
         "menuComida"
       )
       .innerHTML =
-        '<div class="aviso">No fue posible cargar el menú.</div>';
+        '<div class="aviso">Por el momento no pudimos cargar el menú.</div>';
 
     return;
 
@@ -646,11 +1142,6 @@ async function cargarMenu(){
           .precio_menu
       );
 
-
-    /*
-      La comida completa se maneja
-      como una sola unidad.
-    */
 
     comidaDisponible =
       productosComida.every(
@@ -698,7 +1189,7 @@ function mostrarDesayunos(){
 
 
   selector.innerHTML =
-    '<option value="">Selecciona...</option>';
+    '<option value="">Selecciona tu desayuno...</option>';
 
 
   if(
@@ -709,7 +1200,8 @@ function mostrarDesayunos(){
 
       <div class="aviso">
 
-        Los desayunos de hoy aún no han sido publicados.
+        🌤️ Los desayunos de hoy
+        todavía no han sido publicados.
 
       </div>
 
@@ -727,79 +1219,81 @@ function mostrarDesayunos(){
   desayunosHoy.forEach(
     item => {
 
-      const fila =
-        document.createElement(
-          "div"
-        );
-
-
-      fila.className =
-        item.disponible
-          ? "producto"
-          : "producto producto-agotado";
-
-
       const precio =
         Number(
           item.precio_menu
         );
 
 
-      fila.innerHTML = `
+      const tarjeta =
+        document.createElement(
+          "div"
+        );
 
-        <div class="nombre-producto">
 
-          ${item.nombre}
+      tarjeta.className =
+        item.disponible
+
+          ? "desayuno-card"
+
+          : "desayuno-card agotado-card";
+
+
+      tarjeta.innerHTML = `
+
+        <div class="desayuno-info">
+
+          <div class="desayuno-nombre">
+
+            ${item.nombre}
+
+          </div>
+
+
+          ${
+            item.disponible
+
+            ? `
+
+              <div class="desayuno-disponible">
+
+                ● Disponible
+
+              </div>
+
+            `
+
+            : `
+
+              <div class="agotado-texto">
+
+                🔴 Agotado por hoy
+
+                <br>
+
+                ¡Gracias por tu preferencia!
+
+              </div>
+
+            `
+          }
 
         </div>
 
 
-        <div class="precio-desayuno">
+        <div class="desayuno-precio">
 
           $${precio.toFixed(0)}
 
         </div>
 
-
-        ${
-          item.disponible
-
-          ? `
-
-            <div class="disponible">
-
-              🟢 Disponible
-
-            </div>
-
-          `
-
-          : `
-
-            <div class="agotado">
-
-              🔴 Agotado por hoy.
-              ¡Gracias por tu preferencia!
-
-            </div>
-
-          `
-        }
-
       `;
 
 
       contenedor.appendChild(
-        fila
+        tarjeta
       );
 
-
-
-      /*
-        Solamente los disponibles
-        aparecen en el selector
-        para realizar pedidos.
-      */
 
       if(
         item.disponible
@@ -820,7 +1314,7 @@ function mostrarDesayunos(){
         option.textContent =
           item.nombre
           +
-          " - $"
+          " · $"
           +
           precio.toFixed(0);
 
@@ -862,6 +1356,12 @@ function mostrarComida(){
     );
 
 
+  const mensajeCasero =
+    document.getElementById(
+      "mensajeCasero"
+    );
+
+
   aviso.innerHTML =
     "";
 
@@ -874,20 +1374,29 @@ function mostrarComida(){
 
       <div class="aviso">
 
-        El menú de hoy aún no ha sido publicado.
+        🍲 El menú de hoy
+        todavía no ha sido publicado.
 
       </div>
 
     `;
 
 
-    precio.textContent =
+    precio.innerHTML =
       "";
+
+
+    mensajeCasero.style.display =
+      "none";
 
 
     return;
 
   }
+
+
+  mensajeCasero.style.display =
+    "block";
 
 
   contenedor.innerHTML =
@@ -904,25 +1413,36 @@ function mostrarComida(){
 
 
       fila.className =
-        comidaDisponible
-          ? "producto"
-          : "producto producto-agotado";
+        "platillo";
 
 
       fila.innerHTML = `
 
-        <div class="categoria">
+        <div class="platillo-icono">
 
-          ${nombreCategoria(
+          ${iconoCategoria(
             item.categoria
           )}
 
         </div>
 
 
-        <div class="nombre-producto">
+        <div>
 
-          ${item.nombre}
+          <div class="platillo-categoria">
+
+            ${nombreCategoria(
+              item.categoria
+            )}
+
+          </div>
+
+
+          <div class="platillo-nombre">
+
+            ${item.nombre}
+
+          </div>
 
         </div>
 
@@ -937,10 +1457,21 @@ function mostrarComida(){
   );
 
 
-  precio.textContent =
-    "MENÚ COMPLETO $"
-    +
-    precioComida.toFixed(0);
+  precio.innerHTML = `
+
+    <div class="precio-menu-box">
+
+      <small>
+        MENÚ COMPLETO
+      </small>
+
+      <strong>
+        $${precioComida.toFixed(0)}
+      </strong>
+
+    </div>
+
+  `;
 
 
   if(
@@ -951,11 +1482,11 @@ function mostrarComida(){
 
       <div class="aviso-agotado">
 
-        🔴 Menú agotado por hoy.
+        🔴 MENÚ AGOTADO POR HOY
 
         <br>
 
-        ¡Gracias por tu preferencia! ❤️
+        ¡Muchas gracias por tu preferencia! ❤️
 
       </div>
 
@@ -968,7 +1499,7 @@ function mostrarComida(){
 
 
 // ========================================
-// CATEGORÍAS
+// CATEGORIAS
 // ========================================
 
 function nombreCategoria(
@@ -978,19 +1509,19 @@ function nombreCategoria(
   const nombres = {
 
     SOPA_CREMA:
-      "🥣 SOPA / CREMA",
+      "Sopa / crema",
 
     GUISO:
-      "🍗 GUISO",
+      "Plato fuerte",
 
     GUARNICION:
-      "🍚 GUARNICIÓN",
+      "Guarnición",
 
     POSTRE:
-      "🍮 POSTRE",
+      "Postre",
 
     AGUA:
-      "🥤 AGUA"
+      "Agua del día"
 
   };
 
@@ -1004,9 +1535,37 @@ function nombreCategoria(
 }
 
 
+function iconoCategoria(
+  categoria
+){
+
+  const iconos = {
+
+    SOPA_CREMA:"🥣",
+
+    GUISO:"🍗",
+
+    GUARNICION:"🍚",
+
+    POSTRE:"🍮",
+
+    AGUA:"🥤"
+
+  };
+
+
+  return (
+    iconos[categoria]
+    ||
+    "🍴"
+  );
+
+}
+
+
 
 // ========================================
-// BOTONES DISPONIBLES
+// BOTONES PEDIDO
 // ========================================
 
 function actualizarBotonesPedido(){
@@ -1030,13 +1589,6 @@ function actualizarBotonesPedido(){
   btnComida.disabled =
     !comidaDisponible;
 
-
-
-  /*
-    Si algo se agotó mientras el cliente
-    tenía abierta la página, eliminamos
-    esa selección.
-  */
 
   if(
     tipoSeleccionado ===
@@ -1091,7 +1643,8 @@ function seleccionarTipo(
 
 
   if(
-    tipo === "DESAYUNO"
+    tipo ===
+    "DESAYUNO"
     &&
     desayunosDisponibles.length === 0
   ){
@@ -1106,13 +1659,14 @@ function seleccionarTipo(
 
 
   if(
-    tipo === "COMIDA"
+    tipo ===
+    "COMIDA"
     &&
     !comidaDisponible
   ){
 
     mostrarError(
-      "El menú de comida está agotado por hoy."
+      "La comida está agotada por hoy."
     );
 
     return;
@@ -1230,7 +1784,7 @@ function cargarHorarios(
 
 
   select.innerHTML =
-    '<option value="">Selecciona horario...</option>';
+    '<option value="">Selecciona...</option>';
 
 
   horarios.forEach(
@@ -1262,6 +1816,24 @@ function cargarHorarios(
 
 
 // ========================================
+// IR AL PEDIDO
+// ========================================
+
+function irAPedido(){
+
+  document
+    .getElementById(
+      "hacerPedido"
+    )
+    .scrollIntoView({
+      behavior:"smooth"
+    });
+
+}
+
+
+
+// ========================================
 // ENVIAR PEDIDO
 // ========================================
 
@@ -1271,12 +1843,8 @@ async function enviarPedido(){
 
 
   /*
-    Antes de generar el WhatsApp,
-    consultamos nuevamente Supabase.
-
-    Esto reduce el riesgo de pedir algo
-    que se agotó mientras el cliente
-    llenaba el formulario.
+    Verificamos nuevamente la base
+    antes de mandar a WhatsApp.
   */
 
   const {
@@ -1357,11 +1925,6 @@ async function enviarPedido(){
   }
 
 
-  /*
-    Refrescamos visualmente por si
-    algo acaba de agotarse.
-  */
-
   mostrarDesayunos();
 
   mostrarComida();
@@ -1429,7 +1992,7 @@ async function enviarPedido(){
   ){
 
     mostrarError(
-      "Selecciona si quieres desayuno o comida."
+      "Primero elige si quieres desayuno o comida."
     );
 
     return;
@@ -1440,7 +2003,7 @@ async function enviarPedido(){
   if(!nombre){
 
     mostrarError(
-      "Escribe tu nombre."
+      "Escribe tu nombre para continuar."
     );
 
     return;
@@ -1451,7 +2014,7 @@ async function enviarPedido(){
   if(!area){
 
     mostrarError(
-      "Escribe tu área."
+      "Indícanos tu área."
     );
 
     return;
@@ -1462,7 +2025,7 @@ async function enviarPedido(){
   if(!piso){
 
     mostrarError(
-      "Escribe tu piso."
+      "Indícanos el piso."
     );
 
     return;
@@ -1488,7 +2051,7 @@ async function enviarPedido(){
   if(!horario){
 
     mostrarError(
-      "Selecciona el horario de entrega."
+      "Selecciona un horario de entrega."
     );
 
     return;
@@ -1506,7 +2069,7 @@ async function enviarPedido(){
 
 
   // ========================================
-  // PEDIDO DESAYUNO
+  // DESAYUNO
   // ========================================
 
   if(
@@ -1549,7 +2112,7 @@ async function enviarPedido(){
     if(!item){
 
       mostrarError(
-        "Ese desayuno acaba de agotarse. Elige otro disponible."
+        "Ese desayuno acaba de agotarse. Elige otra opción disponible."
       );
 
       return;
@@ -1577,7 +2140,7 @@ async function enviarPedido(){
 
 
   // ========================================
-  // PEDIDO COMIDA
+  // COMIDA
   // ========================================
 
   if(
@@ -1590,7 +2153,7 @@ async function enviarPedido(){
     ){
 
       mostrarError(
-        "El menú de comida acaba de agotarse por hoy."
+        "La comida acaba de agotarse por hoy."
       );
 
       return;
@@ -1602,7 +2165,8 @@ async function enviarPedido(){
       productosComida
       .map(
         x =>
-          "• " +
+          "• "
+          +
           x.nombre
       )
       .join(
@@ -1620,7 +2184,7 @@ async function enviarPedido(){
 
 
   // ========================================
-  // SUSCRIPCIÓN
+  // LISTA DE DIFUSION
   // ========================================
 
   const textoSuscripcion =
@@ -1629,7 +2193,6 @@ async function enviarPedido(){
       ? "SÍ - Por favor agrégame a la lista de difusión."
 
       : "NO";
-
 
 
   const tipoTexto =
@@ -1643,7 +2206,7 @@ async function enviarPedido(){
 
 
   // ========================================
-  // MENSAJE WHATSAPP
+  // WHATSAPP
   // ========================================
 
   const mensaje =
@@ -1657,7 +2220,7 @@ ${tipoTexto}
 ${detalle}
 
 🍽️ Cantidad: ${cantidad}
-💰 Total: $${total.toFixed(0)}
+💰 *Total: $${total.toFixed(0)}*
 
 👤 Nombre: ${nombre}
 🏢 Área: ${area}
@@ -1666,7 +2229,6 @@ ${detalle}
 
 🔔 *Quiero recibir el menú diario:*
 ${textoSuscripcion}`;
-
 
 
   const url =
@@ -1705,11 +2267,17 @@ function mostrarError(
 
 
   error.textContent =
-    texto;
+    "⚠️ " + texto;
 
 
   error.style.display =
     "block";
+
+
+  error.scrollIntoView({
+    behavior:"smooth",
+    block:"center"
+  });
 
 }
 
