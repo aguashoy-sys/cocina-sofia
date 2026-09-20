@@ -78,20 +78,23 @@ input{
 }
 
 .desayuno{
-  display:grid;
-  grid-template-columns:28px 1fr 95px;
-  gap:10px;
-  align-items:center;
   padding:14px 0;
   border-bottom:1px solid #eee;
 }
 
-.desayuno input[type="checkbox"]{
+.desayuno-superior{
+  display:grid;
+  grid-template-columns:28px 1fr 95px;
+  gap:10px;
+  align-items:center;
+}
+
+.desayuno-superior input[type="checkbox"]{
   width:22px;
   height:22px;
 }
 
-.desayuno label{
+.desayuno-superior label{
   margin:0;
   font-weight:normal;
   font-size:17px;
@@ -100,6 +103,37 @@ input{
 .precio-desayuno{
   padding:10px;
   text-align:center;
+}
+
+.etiqueta-precio{
+  font-size:12px;
+  color:#777;
+  text-align:center;
+  margin-bottom:3px;
+}
+
+.estado-desayuno{
+  margin-top:10px;
+  margin-left:38px;
+}
+
+.boton-estado{
+  border:none;
+  border-radius:9px;
+  padding:10px 13px;
+  font-weight:bold;
+  cursor:pointer;
+  font-size:14px;
+}
+
+.disponible{
+  background:#e4f6e9;
+  color:#176b32;
+}
+
+.agotado{
+  background:#fdeaea;
+  color:#9c2222;
 }
 
 .boton{
@@ -115,8 +149,35 @@ input{
   cursor:pointer;
 }
 
-.boton:disabled{
+.boton:disabled,
+.boton-estado:disabled{
   opacity:.5;
+}
+
+.boton-agotado{
+  width:100%;
+  border:2px solid #b52b2b;
+  background:white;
+  color:#b52b2b;
+  padding:15px;
+  border-radius:12px;
+  font-size:16px;
+  font-weight:bold;
+  cursor:pointer;
+  margin-top:10px;
+}
+
+.boton-reactivar{
+  width:100%;
+  border:2px solid #238342;
+  background:white;
+  color:#238342;
+  padding:15px;
+  border-radius:12px;
+  font-size:16px;
+  font-weight:bold;
+  cursor:pointer;
+  margin-top:10px;
 }
 
 .mensaje{
@@ -140,10 +201,13 @@ input{
   color:#9c2222;
 }
 
-.nota{
-  font-size:13px;
-  color:#777;
-  margin-top:8px;
+.info{
+  background:#f7f1ea;
+  padding:13px;
+  border-radius:10px;
+  font-size:14px;
+  line-height:1.4;
+  margin-bottom:15px;
 }
 
 .separador{
@@ -152,11 +216,17 @@ input{
   margin:22px 0;
 }
 
-.etiqueta-precio{
-  font-size:12px;
-  color:#777;
+.estado-comida{
   text-align:center;
-  margin-bottom:3px;
+  font-weight:bold;
+  margin:15px 0 5px;
+}
+
+.verde{color:#238342}
+.rojo{color:#b52b2b}
+
+.cargando{
+  color:#777;
 }
 </style>
 </head>
@@ -181,11 +251,13 @@ input{
 
     <h2>🌅 Desayunos de hoy</h2>
 
-    <p>
-      Marca los desayunos disponibles y escribe el precio de cada uno.
-    </p>
+    <div class="info">
+      Marca los desayunos que ofrecerás hoy y escribe su precio.
+      Si alguno se termina durante el día, podrás marcarlo como
+      <strong>agotado</strong> sin borrarlo.
+    </div>
 
-    <div id="listaDesayunos">
+    <div id="listaDesayunos" class="cargando">
       Cargando...
     </div>
 
@@ -231,7 +303,6 @@ input{
     <hr class="separador">
 
     <div class="campo">
-
       <label>💰 Precio del menú completo</label>
 
       <input
@@ -239,19 +310,33 @@ input{
         type="number"
         inputmode="decimal"
         placeholder="Ejemplo: 95"
-        min="0"
-      >
-
+        min="0">
     </div>
 
 
     <button
       class="boton"
       id="publicar"
-      onclick="publicarTodo()"
-    >
-      PUBLICAR MENÚ DE HOY
+      onclick="publicarTodo()">
+      PUBLICAR / ACTUALIZAR MENÚ DE HOY
     </button>
+
+
+    <div id="controlComida" style="display:none">
+
+      <hr class="separador">
+
+      <div
+        id="estadoComida"
+        class="estado-comida">
+      </div>
+
+      <button
+        id="botonEstadoComida"
+        onclick="cambiarEstadoComida()">
+      </button>
+
+    </div>
 
 
     <div
@@ -279,9 +364,16 @@ supabase.createClient(
 );
 
 
-// ==============================
+let productos = [];
+
+let menuHoy = [];
+
+let comidaDisponible = true;
+
+
+// ========================================
 // FECHA
-// ==============================
+// ========================================
 
 function fechaLocalISO(){
 
@@ -326,9 +418,25 @@ function mostrarFecha(){
 
 
 
-// ==============================
-// CARGAR PRODUCTOS
-// ==============================
+// ========================================
+// INICIAR
+// ========================================
+
+async function iniciar(){
+
+  mostrarFecha();
+
+  await cargarProductos();
+
+  await cargarMenuHoy();
+
+}
+
+
+
+// ========================================
+// PRODUCTOS
+// ========================================
 
 async function cargarProductos(){
 
@@ -342,67 +450,78 @@ async function cargarProductos(){
 
   if(error){
 
+    console.error(error);
+
     mostrarMensaje(
       "No fue posible cargar los productos.",
       false
     );
 
-    console.error(error);
     return;
   }
 
 
+  productos = data;
+
+
   cargarSelect(
     "sopa",
-    data.filter(x =>
-      x.categoria === "SOPA_CREMA")
+    productos.filter(
+      x => x.categoria === "SOPA_CREMA"
+    )
   );
 
   cargarSelect(
     "guiso",
-    data.filter(x =>
-      x.categoria === "GUISO")
+    productos.filter(
+      x => x.categoria === "GUISO"
+    )
   );
 
   cargarSelect(
     "guarnicion1",
-    data.filter(x =>
-      x.categoria === "GUARNICION")
+    productos.filter(
+      x => x.categoria === "GUARNICION"
+    )
   );
 
   cargarSelect(
     "guarnicion2",
-    data.filter(x =>
-      x.categoria === "GUARNICION")
+    productos.filter(
+      x => x.categoria === "GUARNICION"
+    )
   );
 
   cargarSelect(
     "postre",
-    data.filter(x =>
-      x.categoria === "POSTRE")
+    productos.filter(
+      x => x.categoria === "POSTRE"
+    )
   );
 
   cargarSelect(
     "agua",
-    data.filter(x =>
-      x.categoria === "AGUA")
+    productos.filter(
+      x => x.categoria === "AGUA"
+    )
   );
 
 
   cargarDesayunos(
-    data.filter(x =>
-      x.categoria === "DESAYUNO")
+    productos.filter(
+      x => x.categoria === "DESAYUNO"
+    )
   );
 
 }
 
 
 
-// ==============================
+// ========================================
 // SELECTS
-// ==============================
+// ========================================
 
-function cargarSelect(id,productos){
+function cargarSelect(id,lista){
 
   const select =
     document.getElementById(id);
@@ -411,12 +530,13 @@ function cargarSelect(id,productos){
     '<option value="">Seleccionar...</option>';
 
 
-  productos.forEach(p => {
+  lista.forEach(p => {
 
     const opcion =
       document.createElement("option");
 
     opcion.value = p.id;
+
     opcion.textContent = p.nombre;
 
     select.appendChild(opcion);
@@ -427,11 +547,11 @@ function cargarSelect(id,productos){
 
 
 
-// ==============================
-// DESAYUNOS
-// ==============================
+// ========================================
+// CREAR DESAYUNOS
+// ========================================
 
-function cargarDesayunos(productos){
+function cargarDesayunos(lista){
 
   const contenedor =
     document.getElementById(
@@ -441,44 +561,55 @@ function cargarDesayunos(productos){
   contenedor.innerHTML = "";
 
 
-  productos.forEach(p => {
+  lista.forEach(p => {
 
     const fila =
       document.createElement("div");
 
-    fila.className =
-      "desayuno";
+    fila.className = "desayuno";
+
+    fila.id =
+      "fila_desayuno_" + p.id;
 
 
     fila.innerHTML = `
 
-      <input
-        type="checkbox"
-        class="checkDesayuno"
-        value="${p.id}"
-        id="desayuno_${p.id}"
-      >
-
-      <label
-        for="desayuno_${p.id}">
-        ${p.nombre}
-      </label>
-
-      <div>
-
-        <div class="etiqueta-precio">
-          Precio
-        </div>
+      <div class="desayuno-superior">
 
         <input
-          type="number"
-          inputmode="decimal"
-          min="0"
-          placeholder="$"
-          class="precio-desayuno"
-          id="precio_${p.id}"
+          type="checkbox"
+          class="checkDesayuno"
+          value="${p.id}"
+          id="desayuno_${p.id}"
         >
 
+        <label for="desayuno_${p.id}">
+          ${p.nombre}
+        </label>
+
+        <div>
+
+          <div class="etiqueta-precio">
+            Precio
+          </div>
+
+          <input
+            type="number"
+            inputmode="decimal"
+            min="0"
+            placeholder="$"
+            class="precio-desayuno"
+            id="precio_${p.id}"
+          >
+
+        </div>
+
+      </div>
+
+
+      <div
+        class="estado-desayuno"
+        id="estado_${p.id}">
       </div>
 
     `;
@@ -492,9 +623,494 @@ function cargarDesayunos(productos){
 
 
 
-// ==============================
-// PUBLICAR
-// ==============================
+// ========================================
+// RECUPERAR MENÚ YA PUBLICADO
+// ========================================
+
+async function cargarMenuHoy(){
+
+  /*
+    IMPORTANTE:
+    No filtramos disponible=true porque necesitamos
+    recuperar también los productos agotados.
+  */
+
+  const {data,error} =
+    await db
+      .from("cs_menu_dia")
+      .select(`
+        id,
+        fecha,
+        tipo,
+        producto_id,
+        disponible,
+        precio_menu,
+        cs_productos(
+          id,
+          categoria,
+          nombre
+        )
+      `)
+      .eq(
+        "fecha",
+        fechaLocalISO()
+      );
+
+
+  if(error){
+
+    console.error(error);
+
+    mostrarMensaje(
+      "No fue posible recuperar el menú de hoy.",
+      false
+    );
+
+    return;
+  }
+
+
+  menuHoy = data || [];
+
+
+  recuperarDesayunos();
+
+  recuperarComida();
+
+}
+
+
+
+// ========================================
+// RECUPERAR DESAYUNOS
+// ========================================
+
+function recuperarDesayunos(){
+
+  const desayunos =
+    menuHoy.filter(
+      x => x.tipo === "DESAYUNO"
+    );
+
+
+  desayunos.forEach(item => {
+
+    const check =
+      document.getElementById(
+        "desayuno_" +
+        item.producto_id
+      );
+
+    const precio =
+      document.getElementById(
+        "precio_" +
+        item.producto_id
+      );
+
+
+    if(check){
+      check.checked = true;
+    }
+
+
+    if(precio){
+      precio.value =
+        Number(item.precio_menu);
+    }
+
+
+    mostrarEstadoDesayuno(
+      item
+    );
+
+  });
+
+}
+
+
+
+// ========================================
+// ESTADO DESAYUNO
+// ========================================
+
+function mostrarEstadoDesayuno(item){
+
+  const contenedor =
+    document.getElementById(
+      "estado_" +
+      item.producto_id
+    );
+
+
+  if(!contenedor){
+    return;
+  }
+
+
+  const texto =
+    item.disponible
+      ? "🟢 Disponible"
+      : "🔴 Agotado por hoy";
+
+
+  const clase =
+    item.disponible
+      ? "boton-estado disponible"
+      : "boton-estado agotado";
+
+
+  const accion =
+    item.disponible
+      ? "MARCAR AGOTADO"
+      : "VOLVER A ACTIVAR";
+
+
+  contenedor.innerHTML = `
+
+    <strong>
+      ${texto}
+    </strong>
+
+    &nbsp;
+
+    <button
+      class="${clase}"
+      onclick="cambiarEstadoDesayuno(
+        ${item.id},
+        ${item.producto_id},
+        ${item.disponible}
+      )">
+      ${accion}
+    </button>
+
+  `;
+
+}
+
+
+
+// ========================================
+// CAMBIAR ESTADO DESAYUNO
+// ========================================
+
+async function cambiarEstadoDesayuno(
+  menuId,
+  productoId,
+  estadoActual
+){
+
+  const nuevoEstado =
+    !estadoActual;
+
+
+  const {error} =
+    await db.rpc(
+      "cs_cambiar_disponibilidad_desayuno",
+      {
+        p_menu_id:
+          menuId,
+
+        p_disponible:
+          nuevoEstado
+      }
+    );
+
+
+  if(error){
+
+    console.error(error);
+
+    mostrarMensaje(
+      "No se pudo cambiar el estado del desayuno.",
+      false
+    );
+
+    return;
+  }
+
+
+  mostrarMensaje(
+    nuevoEstado
+      ? "✅ Desayuno disponible nuevamente."
+      : "🔴 Desayuno marcado como agotado.",
+    true
+  );
+
+
+  await cargarMenuHoy();
+
+}
+
+
+
+// ========================================
+// RECUPERAR COMIDA
+// ========================================
+
+function recuperarComida(){
+
+  const comida =
+    menuHoy.filter(
+      x => x.tipo === "COMIDA"
+    );
+
+
+  if(comida.length === 0){
+
+    document
+      .getElementById(
+        "controlComida"
+      )
+      .style.display =
+        "none";
+
+    return;
+  }
+
+
+  const porCategoria = {};
+
+
+  comida.forEach(item => {
+
+    if(
+      item.cs_productos
+      &&
+      !porCategoria[
+        item.cs_productos.categoria
+      ]
+    ){
+
+      porCategoria[
+        item.cs_productos.categoria
+      ] = item;
+
+    }
+
+  });
+
+
+  asignarSelect(
+    "sopa",
+    porCategoria.SOPA_CREMA
+  );
+
+
+  asignarSelect(
+    "guiso",
+    porCategoria.GUISO
+  );
+
+
+  const guarniciones =
+    comida.filter(
+      x =>
+        x.cs_productos
+        &&
+        x.cs_productos.categoria
+          === "GUARNICION"
+    );
+
+
+  if(guarniciones[0]){
+
+    document
+      .getElementById(
+        "guarnicion1"
+      )
+      .value =
+        guarniciones[0]
+          .producto_id;
+
+  }
+
+
+  if(guarniciones[1]){
+
+    document
+      .getElementById(
+        "guarnicion2"
+      )
+      .value =
+        guarniciones[1]
+          .producto_id;
+
+  }
+
+
+  asignarSelect(
+    "postre",
+    porCategoria.POSTRE
+  );
+
+
+  asignarSelect(
+    "agua",
+    porCategoria.AGUA
+  );
+
+
+  document
+    .getElementById("precio")
+    .value =
+      Number(
+        comida[0].precio_menu
+      );
+
+
+  /*
+    Toda la comida se publica con el mismo estado,
+    así que tomamos el primero.
+  */
+
+  comidaDisponible =
+    comida[0].disponible;
+
+
+  mostrarEstadoComida();
+
+}
+
+
+
+// ========================================
+// ASIGNAR SELECT
+// ========================================
+
+function asignarSelect(
+  id,
+  item
+){
+
+  if(!item){
+    return;
+  }
+
+
+  document
+    .getElementById(id)
+    .value =
+      item.producto_id;
+
+}
+
+
+
+// ========================================
+// ESTADO COMIDA
+// ========================================
+
+function mostrarEstadoComida(){
+
+  const control =
+    document.getElementById(
+      "controlComida"
+    );
+
+  const estado =
+    document.getElementById(
+      "estadoComida"
+    );
+
+  const boton =
+    document.getElementById(
+      "botonEstadoComida"
+    );
+
+
+  control.style.display =
+    "block";
+
+
+  if(comidaDisponible){
+
+    estado.innerHTML =
+      '<span class="verde">🟢 COMIDA DISPONIBLE</span>';
+
+    boton.textContent =
+      "🔴 MARCAR COMIDA AGOTADA";
+
+    boton.className =
+      "boton-agotado";
+
+  }
+
+  else{
+
+    estado.innerHTML =
+      '<span class="rojo">🔴 COMIDA AGOTADA POR HOY</span>';
+
+    boton.textContent =
+      "🟢 VOLVER A ACTIVAR COMIDA";
+
+    boton.className =
+      "boton-reactivar";
+
+  }
+
+}
+
+
+
+// ========================================
+// CAMBIAR ESTADO COMIDA
+// ========================================
+
+async function cambiarEstadoComida(){
+
+  const nuevoEstado =
+    !comidaDisponible;
+
+
+  const {error} =
+    await db.rpc(
+      "cs_cambiar_disponibilidad_comida",
+      {
+
+        p_fecha:
+          fechaLocalISO(),
+
+        p_disponible:
+          nuevoEstado
+
+      }
+    );
+
+
+  if(error){
+
+    console.error(error);
+
+    mostrarMensaje(
+      "No se pudo cambiar el estado de la comida.",
+      false
+    );
+
+    return;
+  }
+
+
+  comidaDisponible =
+    nuevoEstado;
+
+
+  mostrarEstadoComida();
+
+
+  mostrarMensaje(
+    nuevoEstado
+      ? "✅ La comida está disponible nuevamente."
+      : "🔴 La comida fue marcada como agotada.",
+    true
+  );
+
+}
+
+
+
+// ========================================
+// PUBLICAR / ACTUALIZAR
+// ========================================
 
 async function publicarTodo(){
 
@@ -505,10 +1121,14 @@ async function publicarTodo(){
 
 
   const sopa =
-    document.getElementById("sopa").value;
+    document.getElementById(
+      "sopa"
+    ).value;
 
   const guiso =
-    document.getElementById("guiso").value;
+    document.getElementById(
+      "guiso"
+    ).value;
 
   const g1 =
     document.getElementById(
@@ -567,7 +1187,10 @@ async function publicarTodo(){
   }
 
 
-  if(!precio || precio <= 0){
+  if(
+    !precio ||
+    precio <= 0
+  ){
 
     mostrarMensaje(
       "Escribe el precio del menú.",
@@ -579,9 +1202,7 @@ async function publicarTodo(){
 
 
 
-  // ==============================
   // DESAYUNOS SELECCIONADOS
-  // ==============================
 
   const checks =
     Array.from(
@@ -592,19 +1213,26 @@ async function publicarTodo(){
 
 
   const desayunos = [];
+
   const preciosDesayuno = [];
 
 
-  for(const check of checks){
+  for(
+    const check
+    of checks
+  ){
 
     const id =
       Number(check.value);
 
+
     const precioDesayuno =
       Number(
-        document.getElementById(
-          "precio_" + id
-        ).value
+        document
+          .getElementById(
+            "precio_" + id
+          )
+          .value
       );
 
 
@@ -631,7 +1259,6 @@ async function publicarTodo(){
   }
 
 
-
   const productosComida = [
 
     Number(sopa),
@@ -650,11 +1277,12 @@ async function publicarTodo(){
     "PUBLICANDO...";
 
 
-  // ==============================
-  // PUBLICAR COMIDA
-  // ==============================
 
-  const {error:errorComida} =
+  // PUBLICAR COMIDA
+
+  const {
+    error:errorComida
+  } =
     await db.rpc(
       "cs_publicar_menu",
       {
@@ -674,7 +1302,9 @@ async function publicarTodo(){
 
   if(errorComida){
 
-    console.error(errorComida);
+    console.error(
+      errorComida
+    );
 
     mostrarMensaje(
       "No se pudo publicar la comida.",
@@ -682,16 +1312,17 @@ async function publicarTodo(){
     );
 
     restaurarBoton();
+
     return;
   }
 
 
 
-  // ==============================
-  // PUBLICAR DESAYUNOS + PRECIOS
-  // ==============================
+  // PUBLICAR DESAYUNOS
 
-  const {error:errorDesayuno} =
+  const {
+    error:errorDesayuno
+  } =
     await db.rpc(
       "cs_publicar_desayunos_con_precio",
       {
@@ -711,7 +1342,9 @@ async function publicarTodo(){
 
   if(errorDesayuno){
 
-    console.error(errorDesayuno);
+    console.error(
+      errorDesayuno
+    );
 
     mostrarMensaje(
       "La comida se publicó, pero hubo un problema con los desayunos.",
@@ -719,26 +1352,29 @@ async function publicarTodo(){
     );
 
     restaurarBoton();
+
     return;
   }
 
 
-
   mostrarMensaje(
-    "✅ Menú de hoy publicado correctamente.",
+    "✅ Menú de hoy publicado / actualizado correctamente.",
     true
   );
 
 
   restaurarBoton();
 
+
+  await cargarMenuHoy();
+
 }
 
 
 
-// ==============================
+// ========================================
 // MENSAJES
-// ==============================
+// ========================================
 
 function mostrarMensaje(
   texto,
@@ -750,7 +1386,10 @@ function mostrarMensaje(
       "mensaje"
     );
 
-  mensaje.textContent = texto;
+
+  mensaje.textContent =
+    texto;
+
 
   mensaje.className =
     correcto
@@ -767,21 +1406,23 @@ function restaurarBoton(){
       "publicar"
     );
 
-  boton.disabled = false;
+
+  boton.disabled =
+    false;
+
 
   boton.textContent =
-    "PUBLICAR MENÚ DE HOY";
+    "PUBLICAR / ACTUALIZAR MENÚ DE HOY";
 
 }
 
 
 
-// ==============================
-// INICIAR
-// ==============================
+// ========================================
+// ARRANCAR
+// ========================================
 
-mostrarFecha();
-cargarProductos();
+iniciar();
 
 </script>
 
