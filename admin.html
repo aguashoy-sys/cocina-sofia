@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Cocina Sofía | Administrar menú</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  font-family:Arial,Helvetica,sans-serif;
+  background:#fff8f1;
+  color:#333;
+}
+
+.contenedor{
+  max-width:600px;
+  margin:auto;
+  padding:18px;
+}
+
+.encabezado{
+  text-align:center;
+  margin-bottom:20px;
+}
+
+.logo-sofia{
+  width:150px;
+  height:150px;
+  object-fit:contain;
+  display:block;
+  margin:0 auto 10px;
+}
+
+.encabezado h1{
+  margin:0 0 5px;
+  color:#9b3f2f;
+}
+
+.encabezado div{
+  color:#777;
+}
+
+.fecha{
+  background:#9b3f2f;
+  color:white;
+  padding:14px;
+  border-radius:14px;
+  font-weight:bold;
+  text-align:center;
+  font-size:18px;
+}
+
+
+/* TARJETAS */
+
+.tarjeta{
+  background:white;
+  margin-top:18px;
+  padding:20px;
+  border-radius:18px;
+  box-shadow:0 4px 14px rgba(0,0,0,.08);
+}
+
+.tarjeta h2{
+  margin-top:0;
+  color:#9b3f2f;
+}
+
+.info{
+  background:#fff8f1;
+  padding:13px;
+  border-radius:10px;
+  font-size:14px;
+  line-height:1.5;
+  margin-bottom:15px;
+}
+
+
+/* CAMPOS */
+
+.campo{
+  margin-bottom:18px;
+}
+
+label{
+  display:block;
+  font-weight:bold;
+  margin-bottom:7px;
+}
+
+select,
+input{
+  width:100%;
+  padding:14px;
+  border:1px solid #ccc;
+  border-radius:10px;
+  font-size:16px;
+  background:white;
+}
+
+
+/* DESAYUNOS */
+
+.desayuno{
+  padding:15px 0;
+  border-bottom:1px solid #eee;
+}
+
+.desayuno:last-child{
+  border-bottom:none;
+}
+
+.desayuno-superior{
+  display:grid;
+  grid-template-columns:28px 1fr 95px;
+  gap:10px;
+  align-items:center;
+}
+
+.desayuno-superior input[type="checkbox"]{
+  width:22px;
+  height:22px;
+}
+
+.desayuno-superior label{
+  margin:0;
+  font-weight:normal;
+  font-size:17px;
+}
+
+.etiqueta-precio{
+  font-size:12px;
+  color:#777;
+  text-align:center;
+  margin-bottom:3px;
+}
+
+.precio-desayuno{
+  padding:10px;
+  text-align:center;
+}
+
+.estado-desayuno{
+  margin-top:10px;
+  margin-left:38px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.estado-verde{
+  color:#238342;
+  font-weight:bold;
+}
+
+.estado-rojo{
+  color:#b52b2b;
+  font-weight:bold;
+}
+
+.no-publicado{
+  color:#888;
+  font-size:13px;
+}
+
+.boton-mini{
+  border:none;
+  border-radius:9px;
+  padding:9px 12px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.boton-agotar{
+  background:#fdeaea;
+  color:#a42121;
+}
+
+.boton-reactivar{
+  background:#e4f6e9;
+  color:#176b32;
+}
+
+.boton-mini:disabled{
+  opacity:.5;
+}
+
+
+/* PUBLICAR */
+
+.boton-principal{
+  width:100%;
+  border:none;
+  padding:18px;
+  margin-top:20px;
+  border-radius:14px;
+  background:#9b3f2f;
+  color:white;
+  font-size:17px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.boton-principal:disabled{
+  opacity:.5;
+}
+
+
+/* COMIDA */
+
+.separador{
+  border:none;
+  border-top:1px solid #eee;
+  margin:22px 0;
+}
+
+#controlComida{
+  display:none;
+}
+
+.estado-comida{
+  text-align:center;
+  font-weight:bold;
+  margin-bottom:12px;
+}
+
+.boton-comida-agotar{
+  width:100%;
+  border:2px solid #b52b2b;
+  background:white;
+  color:#b52b2b;
+  padding:14px;
+  border-radius:12px;
+  font-size:15px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.boton-comida-reactivar{
+  width:100%;
+  border:2px solid #238342;
+  background:white;
+  color:#238342;
+  padding:14px;
+  border-radius:12px;
+  font-size:15px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+
+/* MENSAJES */
+
+.mensaje{
+  display:none;
+  margin-top:18px;
+  padding:15px;
+  border-radius:12px;
+  text-align:center;
+  font-weight:bold;
+}
+
+.exito{
+  display:block;
+  background:#e6f7eb;
+  color:#176b32;
+}
+
+.error{
+  display:block;
+  background:#fdeaea;
+  color:#9c2222;
+}
+
+</style>
+</head>
+
+
+<body>
+
+<div class="contenedor">
+
+
+  <div class="encabezado">
+
+    <img src="logo-cocina-sofia.png" alt="Cocina Económica Sofía" class="logo-sofia">
+
+    <h1>🍴 Cocina Sofía</h1>
+
+    <div>
+      Panel para publicar el menú diario
+    </div>
+
+  </div>
+
+
+  <div
+    class="fecha"
+    id="fechaBonita">
+
+    Cargando fecha...
+
+  </div>
+
+
+
+  <!-- ============================== -->
+  <!-- COMIDA -->
+  <!-- ============================== -->
+
+  <div class="tarjeta">
+
+    <h2>
+      🍲 Comida de hoy
+    </h2>
+
+
+    <div class="info">
+      Elige el menú que preparaste hoy. Debes seleccionar
+      <strong>1 sopa, 3 guisados diferentes, las guarniciones disponibles, 1 postre y 1 agua.</strong>
+    </div>
+
+    <div class="campo">
+      <label>🥣 Sopa o crema</label>
+      <select id="sopa"></select>
+    </div>
+
+    <div class="campo">
+      <label for="guiso1Texto">🍗 Guisado 1</label>
+      <input id="guiso1Texto" list="listaGuisos" autocomplete="off" placeholder="Escribe, por ejemplo: poll">
+      <input id="guiso1" type="hidden">
+    </div>
+
+    <div class="campo">
+      <label for="guiso2Texto">🍗 Guisado 2</label>
+      <input id="guiso2Texto" list="listaGuisos" autocomplete="off" placeholder="Escribe para buscar...">
+      <input id="guiso2" type="hidden">
+    </div>
+
+    <div class="campo">
+      <label for="guiso3Texto">🍗 Guisado 3</label>
+      <input id="guiso3Texto" list="listaGuisos" autocomplete="off" placeholder="Escribe para buscar...">
+      <input id="guiso3" type="hidden">
+      <datalist id="listaGuisos"></datalist>
+      <div style="font-size:12px;color:#777;margin-top:6px;">
+        Escribe algunas letras y selecciona una opción de la lista.
+      </div>
+    </div>
+
+    <div class="campo">
+      <label>🍚 Guarniciones disponibles</label>
+      <div id="listaGuarniciones" style="display:grid;gap:10px;"></div>
+    </div>
+
+    <div class="campo">
+      <label>🍮 Postre</label>
+      <select id="postre"></select>
+    </div>
+
+    <div class="campo">
+      <label>🥤 Agua del día</label>
+      <select id="agua"></select>
+    </div>
+
+    <div class="info"><strong>Precios fijos:</strong> $100 en restaurante · $115 para llevar.</div>
+
+<button
+      class="boton-principal"
+      id="publicar"
+      onclick="publicarTodo()">
+
+      PUBLICAR / ACTUALIZAR MENÚ DE HOY
+
+    </button>
+
+
+
+    <!-- ESTADO COMIDA -->
+
+    <div id="controlComida">
+
+      <hr class="separador">
+
+
+      <div
+        id="estadoComida"
+        class="estado-comida">
+      </div>
+
+
+      <button
+        id="botonEstadoComida"
+        onclick="cambiarEstadoComida()">
+      </button>
+
+    </div>
+
+
+
+    <div
+      id="mensaje"
+      class="mensaje">
+    </div>
+
+  </div>
+
+</div>
+
+
+
+<script>
+
+
+// ========================================
+// SUPABASE
+// ========================================
+
+const SUPABASE_URL =
+"https://yawuozkdndxdreepqlaw.supabase.co";
+
+
+const SUPABASE_KEY =
+"sb_publishable_SNZVLb4pwoSdNO2iBKn2lA_qjegXePB";
+
+
+const db =
+supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+
+
+let productos = [];
+
+let menuHoy = [];
+
+let comidaDisponible = true;
+
+
+
+// ========================================
+// FECHA LOCAL
+// ========================================
+
+function fechaLocalISO(){
+
+  const ahora =
+    new Date();
+
+
+  const year =
+    ahora.getFullYear();
+
+
+  const month =
+    String(
+      ahora.getMonth() + 1
+    )
+    .padStart(2,"0");
+
+
+  const day =
+    String(
+      ahora.getDate()
+    )
+    .padStart(2,"0");
+
+
+  return `${year}-${month}-${day}`;
+
+}
+
+
+
+function mostrarFecha(){
+
+  let texto =
+    new Date()
+    .toLocaleDateString(
+      "es-MX",
+      {
+        weekday:"long",
+        day:"numeric",
+        month:"long"
+      }
+    );
+
+
+  texto =
+    texto.charAt(0).toUpperCase()
+    +
+    texto.slice(1);
+
+
+  document
+    .getElementById(
+      "fechaBonita"
+    )
+    .textContent =
+      "📅 " + texto;
+
+}
+
+
+
+// ========================================
+// CARGAR CATÁLOGO
+// ========================================
+
+async function cargarProductos(){
+
+  const {
+    data,
+    error
+  } =
+    await db
+      .from("cs_productos")
+      .select(
+        "id,categoria,nombre,precio,orden"
+      )
+      .eq(
+        "activo",
+        true
+      )
+      .order(
+        "orden"
+      );
+
+
+  if(error){
+
+    console.error(
+      "Error productos:",
+      error
+    );
+
+
+    mostrarMensaje(
+      "No fue posible cargar los productos.",
+      false
+    );
+
+
+    return;
+
+  }
+
+
+  productos =
+    data || [];
+
+
+  cargarSelect("sopa","SOPA_CREMA");
+  crearBuscadorGuisos();
+  cargarSelect("postre","POSTRE");
+  cargarSelect("agua","AGUA");
+  crearGuarniciones();
+
+}
+
+
+
+// ========================================
+// CREAR SELECT
+// ========================================
+
+function cargarSelect(id,categoria,alfabetico=false){
+  const select=document.getElementById(id);
+  select.innerHTML='<option value="">Seleccionar...</option>';
+  let lista=productos.filter(p=>p.categoria===categoria);
+  if(alfabetico){
+    lista=[...lista].sort((a,b)=>a.nombre.localeCompare(b.nombre,"es",{sensitivity:"base"}));
+  }
+  lista.forEach(p=>{
+    const option=document.createElement("option");
+    option.value=String(p.id);
+    option.textContent=p.nombre;
+    select.appendChild(option);
+  });
+}
+
+function normalizarTexto(texto){
+  return (texto || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g,"")
+    .trim()
+    .toLowerCase();
+}
+
+function crearBuscadorGuisos(){
+  const datalist=document.getElementById("listaGuisos");
+  const guisos=[...productos]
+    .filter(p=>p.categoria==="GUISO")
+    .sort((a,b)=>a.nombre.localeCompare(b.nombre,"es",{sensitivity:"base"}));
+
+  datalist.innerHTML="";
+  guisos.forEach(p=>{
+    const option=document.createElement("option");
+    option.value=p.nombre;
+    datalist.appendChild(option);
+  });
+
+  ["guiso1","guiso2","guiso3"].forEach(id=>{
+    const texto=document.getElementById(id+"Texto");
+    const oculto=document.getElementById(id);
+
+    const sincronizar=()=>{
+      const buscado=normalizarTexto(texto.value);
+      const encontrado=guisos.find(p=>normalizarTexto(p.nombre)===buscado);
+      oculto.value=encontrado ? String(encontrado.id) : "";
+    };
+
+    texto.addEventListener("input",sincronizar);
+    texto.addEventListener("change",sincronizar);
+  });
+}
+
+function ponerGuiso(id,item){
+  const oculto=document.getElementById(id);
+  const texto=document.getElementById(id+"Texto");
+  if(item){
+    oculto.value=String(item.producto_id);
+    texto.value=item.nombre || "";
+  }else{
+    oculto.value="";
+    texto.value="";
+  }
+}
+
+function crearGuarniciones(){
+  const contenedor=document.getElementById("listaGuarniciones");
+  contenedor.innerHTML="";
+  productos.filter(p=>p.categoria==="GUARNICION").forEach(p=>{
+    const fila=document.createElement("label");
+    fila.style.cssText="display:flex;align-items:center;gap:10px;padding:12px;border:1px solid #ddd;border-radius:10px;font-weight:normal;background:#fff;";
+    fila.innerHTML=`<input type="checkbox" class="checkGuarnicion" value="${p.id}" style="width:22px;height:22px;"> <span>${p.nombre}</span>`;
+    contenedor.appendChild(fila);
+  });
+}
+
+// ========================================
+// CONSULTAR MENÚ REAL
+// ========================================
+
+async function cargarMenuHoy(){
+
+  const {
+    data,
+    error
+  } =
+    await db.rpc(
+      "cs_menu_completo_dia",
+      {
+        p_fecha:
+          fechaLocalISO()
+      }
+    );
+
+
+  if(error){
+
+    console.error(
+      "Error menu:",
+      error
+    );
+
+
+    mostrarMensaje(
+      "No fue posible recuperar el menú de hoy.",
+      false
+    );
+
+
+    return false;
+
+  }
+
+
+  menuHoy =
+    data || [];
+
+
+  pintarComida();
+
+
+  return true;
+
+}
+
+
+
+// ========================================
+// PINTAR COMIDA
+// ========================================
+
+function pintarComida(){
+  const comida=menuHoy.filter(item=>item.tipo==="COMIDA");
+  const control=document.getElementById("controlComida");
+  if(comida.length===0){ control.style.display="none"; return; }
+  control.style.display="block";
+
+  const sopa=comida.find(x=>x.categoria==="SOPA_CREMA");
+  if(sopa) document.getElementById("sopa").value=String(sopa.producto_id);
+
+  const guisos=comida.filter(x=>x.categoria==="GUISO");
+  ["guiso1","guiso2","guiso3"].forEach((id,i)=>{
+    ponerGuiso(id,guisos[i] || null);
+  });
+
+  const idsGuarniciones=new Set(comida.filter(x=>x.categoria==="GUARNICION").map(x=>Number(x.producto_id)));
+  document.querySelectorAll(".checkGuarnicion").forEach(ch=>{ ch.checked=idsGuarniciones.has(Number(ch.value)); });
+
+  const postre=comida.find(x=>x.categoria==="POSTRE");
+  if(postre) document.getElementById("postre").value=String(postre.producto_id);
+  const agua=comida.find(x=>x.categoria==="AGUA");
+  if(agua) document.getElementById("agua").value=String(agua.producto_id);
+  comidaDisponible=comida.some(x=>x.disponible===true);
+  pintarEstadoComida();
+}
+
+// ========================================
+// ESTADO COMIDA
+// ========================================
+
+function pintarEstadoComida(){
+
+  const estado =
+    document.getElementById(
+      "estadoComida"
+    );
+
+
+  const boton =
+    document.getElementById(
+      "botonEstadoComida"
+    );
+
+
+  if(comidaDisponible){
+
+    estado.innerHTML = `
+
+      <span class="estado-verde">
+
+        🟢 COMIDA DISPONIBLE
+
+      </span>
+
+    `;
+
+
+    boton.className =
+      "boton-comida-agotar";
+
+
+    boton.textContent =
+      "🔴 MARCAR COMIDA AGOTADA";
+
+  }
+
+  else{
+
+    estado.innerHTML = `
+
+      <span class="estado-rojo">
+
+        🔴 COMIDA AGOTADA POR HOY
+
+      </span>
+
+    `;
+
+
+    boton.className =
+      "boton-comida-reactivar";
+
+
+    boton.textContent =
+      "🟢 VOLVER A ACTIVAR COMIDA";
+
+  }
+
+}
+
+
+
+// ========================================
+// CAMBIAR ESTADO COMIDA
+// ========================================
+
+async function cambiarEstadoComida(){
+
+  const boton =
+    document.getElementById(
+      "botonEstadoComida"
+    );
+
+
+  const nuevoEstado =
+    !comidaDisponible;
+
+
+  boton.disabled =
+    true;
+
+
+  const textoAnterior =
+    boton.textContent;
+
+
+  boton.textContent =
+    "GUARDANDO...";
+
+
+  const {
+    error
+  } =
+    await db.rpc(
+      "cs_cambiar_estado_comida",
+      {
+
+        p_fecha:
+          fechaLocalISO(),
+
+        p_disponible:
+          nuevoEstado
+
+      }
+    );
+
+
+  if(error){
+
+    console.error(
+      "RPC comida:",
+      error
+    );
+
+
+    mostrarMensaje(
+      "No se pudo cambiar el estado de la comida.",
+      false
+    );
+
+
+    boton.disabled =
+      false;
+
+
+    boton.textContent =
+      textoAnterior;
+
+
+    return;
+
+  }
+
+
+  await cargarMenuHoy();
+
+
+  const comida =
+    menuHoy.filter(
+      x =>
+        x.tipo ===
+        "COMIDA"
+    );
+
+
+  const confirmado =
+    comida.length > 0
+    &&
+    comida.every(
+      x =>
+        x.disponible ===
+        nuevoEstado
+    );
+
+
+  if(confirmado){
+
+    mostrarMensaje(
+
+      nuevoEstado
+
+        ? "🟢 La comida está disponible nuevamente."
+
+        : "🔴 La comida fue marcada como agotada.",
+
+      true
+
+    );
+
+  }
+
+  else{
+
+    mostrarMensaje(
+      "Supabase no confirmó el cambio de la comida.",
+      false
+    );
+
+  }
+
+}
+
+
+
+// ========================================
+// PUBLICAR / ACTUALIZAR
+// ========================================
+
+async function publicarTodo(){
+  const boton=document.getElementById("publicar");
+  const sopa=document.getElementById("sopa").value;
+  const guisos=[
+    document.getElementById("guiso1").value,
+    document.getElementById("guiso2").value,
+    document.getElementById("guiso3").value
+  ];
+  const guarniciones=Array.from(document.querySelectorAll(".checkGuarnicion:checked")).map(x=>x.value);
+  const postre=document.getElementById("postre").value;
+  const agua=document.getElementById("agua").value;
+  const precio=100;
+
+  if(!sopa || guisos.some(x=>!x) || !postre || !agua){
+    mostrarMensaje("Selecciona 1 sopa, 3 guisados válidos de la lista, 1 postre y 1 agua.",false); return;
+  }
+  if(new Set(guisos).size!==3){
+    mostrarMensaje("Selecciona tres guisados diferentes.",false); return;
+  }
+  if(guarniciones.length===0){
+    mostrarMensaje("Marca al menos una guarnición disponible.",false); return;
+  }
+
+  const productosComida=[Number(sopa),...guisos.map(Number),...guarniciones.map(Number),Number(postre),Number(agua)];
+  boton.disabled=true; boton.textContent="PUBLICANDO...";
+
+  const {error}=await db.rpc("cs_publicar_menu",{
+    p_fecha:fechaLocalISO(),
+    p_productos:productosComida,
+    p_precio:precio
+  });
+  if(error){
+    console.error("Publicar comida:",error);
+    mostrarMensaje("No se pudo publicar la comida.",false);
+    restaurarBoton(); return;
+  }
+
+  await cargarMenuHoy();
+  const guardados=menuHoy.filter(x=>x.tipo==="COMIDA").map(x=>Number(x.producto_id));
+  const confirmado=productosComida.every(id=>guardados.includes(id));
+  mostrarMensaje(confirmado?"✅ Menú de hoy publicado correctamente.":"El menú se guardó parcialmente. Revisa las selecciones.",confirmado);
+  restaurarBoton();
+}
+
+// ========================================
+// MENSAJES
+// ========================================
+
+function mostrarMensaje(
+  texto,
+  correcto
+){
+
+  const mensaje =
+    document.getElementById(
+      "mensaje"
+    );
+
+
+  mensaje.textContent =
+    texto;
+
+
+  mensaje.className =
+    correcto
+      ? "mensaje exito"
+      : "mensaje error";
+
+}
+
+
+
+function restaurarBoton(){
+
+  const boton =
+    document.getElementById(
+      "publicar"
+    );
+
+
+  boton.disabled =
+    false;
+
+
+  boton.textContent =
+    "PUBLICAR / ACTUALIZAR MENÚ DE HOY";
+
+}
+
+
+
+// ========================================
+// INICIAR
+// ========================================
+
+async function iniciar(){
+
+  mostrarFecha();
+
+  await cargarProductos();
+
+  await cargarMenuHoy();
+
+}
+
+
+iniciar();
+
+
+</script>
+
+</body>
+</html>
